@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+  <style>
+    //Pop up Window for Form Re-ekspor
+		.form-container {
+      position: fixed;
+      top: 25%;
+      left: 50%;
+      transform: translate(-50%, -25%);
+      width: 80%;
+      max-width: 500px;
+      max-height: 99%;
+      background-color: white;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      box-shadow: 0px 5px 20px rgba(0, 0, 0, 0.3);
+      padding: 20px;
+      z-index: 999;
+      overflow-y: auto; /* allow scrolling */
+    }
+
+    //Grid Permohonan
+    .containerSiapterbang {
+      display: grid;
+      grid-template-columns: 110px 348px;
+    }
+    .fullgridrow {
+      width: 100%
+    }
+    .containerPermohonan {
+      display: grid;
+      grid-template-columns: 318px 140px;
+    }
+    .containerAlasan {
+      display: grid;
+      grid-template-columns: 229px 229px;
+    }
+    #alasan {
+      grid-column: 1 / 3;
+      height: 30px;
+    }
+
+    //Grid Detil Manifest
+    .grid-manifest {
+      display: grid;
+      grid-template-columns: 74px 94px 50px 50px 50px 140px;
+    }
+    .containerAwb {
+      display: grid;
+      grid-template-columns: 229px 229px;
+    }
+    //Grid Detil Barang
+    #ct {
+      margin-left: 4px;
+    }
+    .containerBarang {
+      display: grid;
+      grid-template-columns: 80px 288px 50px;
+    }
+    .containerBerat {
+      display: grid;
+      grid-template-columns: 65px 24px;
+      text-align: right;
+    }
+    .containerUraian {
+      display: grid;
+      grid-template-columns: 368px 90px;
+    }
+    .containerFungsi {
+      display: grid;
+      grid-template-columns: 407px 10px;
+    }
+    #toggleFungsi {
+      margin-left: 10px;
+    }
+    .containerNegara {
+      display: grid;
+      grid-template-columns: 50px 179px 229px;
+    }
+
+    //Grid Detil Lain
+    .containerSpbl {
+      display: grid;
+      grid-template-columns: 267px 140px 50px;
+    }
+    #nonspbl {
+      margin-left: 10px;
+    }
+    #dasarHukum {
+      width: 100%;
+    }
+
+    //style for toggle
+    .toggle {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      outline: none;
+      width: 40px;
+      height: 24px;
+      margin-top: 3px;
+      background-color: #ccc;
+      border-radius: 20px;
+      position: relative;
+      cursor: pointer;
+    }
+    .toggle:checked {
+      background-color: #5BC236;
+    }
+    .toggle::before {
+      content: "";
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      top: 1px;
+      left: 1px;
+      background-color: #fff;
+      transition: all 0.3s;
+    }
+
+    .toggle:checked::before {
+      left: 16px;
+    }
+    .button {
+      margin-top: 0px;
+    }
+
+	</style>
+  </head>
+  <body>
+    <div class="form-container">
+      <form id="reForm">
+        <h1 style="text-align:center;">FORM RE-EKSPOR</h1><br>
+        <span style="font-size: 20px;">Permohonan:</span>
+        <div class="grid-permohonan">
+          <div class="containerSiapterbang">
+            <input type="text" name="siapterbang" id="siapterbang" title="M.###/####" placeholder="Siapterbang" required>
+            <input type="text" name="ppjk" id="ppjk" placeholder="PPJK" required>
+          </div>
+          <input type="text" class="fullgridrow" name="alamat" id="alamat" placeholder="Alamat PPJK" required>
+          <div class="containerPermohonan">
+            <input type="text" name="noSurat" id="noSurat" placeholder="Nomor Surat Permohonan">
+            <input type="date" name="tglSurat" id="tglSurat">
+          </div>
+          <div class="containerAlasan">
+            <select id="alasan" name="alasan" required>
+              <option value="" hidden>Alasan Re-ekspor</option>
+              <option value="Tidak Sesuai Pesanan">Tidak Sesuai Pesanan</option>
+              <option value="Salah Kirim">Salah Kirim</option>
+              <option value="Cross Label">Cross Label</option>
+              <option value="Rusak">Rusak</option>
+              <option value="Barang Lartas">Barang Lartas</option>
+            </select>
+            <input type="text" id="ntujuan" name="ntujuan" placeholder="Negara Tujuan Re-Ekspor" style="display: none;" required>
+            <script>
+                  function autocomplete(inp, arr) {
+                    /*the autocomplete function takes two arguments,
+                    the text field element and an array of possible autocompleted values:*/
+                    var currentFocus;
+                    /*execute a function when someone writes in the text field:*/
+                    inp.addEventListener("input", function(e) {
+                      var a, b, i, val = this.value;
+                      /*close any already open lists of autocompleted values*/
+                      closeAllLists();
+                      if (!val) { return false;}
+                      currentFocus = -1;
+                      /*create a DIV element that will contain the items (values):*/
+                      a = document.createElement("DIV");
+                      a.setAttribute("id", this.id + "autocomplete-list");
+                      a.setAttribute("class", "autocomplete-items");
+                      /*append the DIV element as a child of the autocomplete container:*/
+                      this.parentNode.appendChild(a);
+                      /*for each item in the array...*/
+                      for (i = 0; i < arr.length; i++) {
+                      /*check if the item starts with the same letters as the text field value:*/
+                      if (arr[i].substr(0, val.length).toUpperCase() == val.toUpperCase()) {
+                        /*create a DIV element for each matching element:*/
+                        b = document.createElement("DIV");
+                        /*make the matching letters bold:*/
+                        b.innerHTML = "<strong>" + arr[i].substr(0, val.length) + "</strong>";
+                        b.innerHTML += arr[i].substr(val.length);
+                        /*insert a input field that will hold the current array item's value:*/
+                        b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
+                        /*execute a function when someone clicks on the item value (DIV element):*/
+                        b.addEventListener("click", function(e) {
+                          /*insert the value for the autocomplete text field:*/
+                          inp.value = this.getElementsByTagName("input")[0].value;
+                          /*close the list of autocompleted values,
+                          (or any other open lists of autocompleted values:*/
+                          closeAllLists();
+                        });
+                        a.appendChild(b);
+                      }
+                      }
+                    });
+                    /*execute a function presses a key on the keyboard:*/
+                    inp.addEventListener("keydown", function(e) {
+                      var x = document.getElementById(this.id + "autocomplete-list");
+                      if (x) x = x.getElementsByTagName("div");
+                      if (e.keyCode == 40) {
+                      /*If the arrow DOWN key is pressed,
+                      increase the currentFocus variable:*/
+                      currentFocus++;
+                      /*and and make the current item more visible:*/
+                      addActive(x);
+                      } else if (e.keyCode == 38) { //up
+                      /*If the arrow UP key is pressed,
+                      decrease the currentFocus variable:*/
+                      currentFocus--;
+                      /*and and make the current item more visible:*/
+                      addActive(x);
+                      } else if (e.keyCode == 13) {
+                      /*If the ENTER key is pressed, prevent the form from being submitted,*/
+                      e.preventDefault();
+                      if (currentFocus > -1) {
+                        /*and simulate a click on the "active" item:*/
+                        if (x) x[currentFocus].click();
+                      }
+                      }
+                    });
+                    function addActive(x) {
+                    /*a function to classify an item as "active":*/
+                    if (!x) return false;
+                    /*start by removing the "active" class on all items:*/
+                    removeActive(x);
+                    if (currentFocus >= x.length) currentFocus = 0;
+                    if (currentFocus < 0) currentFocus = (x.length - 1);
+                    /*add class "autocomplete-active":*/
+                    x[currentFocus].classList.add("autocomplete-active");
+                    }
+                    function removeActive(x) {
+                    /*a function to remove the "active" class from all autocomplete items:*/
+                    for (var i = 0; i < x.length; i++) {
+                      x[i].classList.remove("autocomplete-active");
+                    }
+                    }
+                    function closeAllLists(elmnt) {
+                    /*close all autocomplete lists in the document,
+                    except the one passed as an argument:*/
+                    var x = document.getElementsByClassName("autocomplete-items");
+                    for (var i = 0; i < x.length; i++) {
+                      if (elmnt != x[i] && elmnt != inp) {
+                      x[i].parentNode.removeChild(x[i]);
+                      }
+                    }
+                    }
+                    /*execute a function when someone clicks in the document:*/
+                    document.addEventListener("click", function (e) {
+                      closeAllLists(e.target);
+                    });
+                  }
+                  
+                  /*An array containing all the country names in the world:*/
+                  var countries = ["Afganistan","Afrika Selatan","Afrika Tengah, Republik","Åland, Kepulauan","Albania","Aljazair","Amerika Serikat","Andorra","Angola","Anguilla","Antarktika","Antigua dan Barbuda","Antillen Belanda","Arab Saudi","Argentina","Armenia","Aruba","Australia","Austria","Azerbaijan","Bahama","Bahrain","Bangladesh","Barbados","Belanda","Belarus","Belgia","Belize","Benin","Bermuda","Bhutan","Bolivia","Bosnia dan Herzegovina","Botswana","Bouvet, Pulau","Brasil","Britania Raya","Brunei","Bulgaria","Burkina Faso","Burundi","Cayman, Kepulauan","Chad","Ceko, Republik","Chili","Cocos (Keeling), Kepulauan","Cook, Kepulauan","Denmark","Djibouti","Dominika","Dominika, Republik","Ekuador","El Salvador","Eritrea","Estonia","Eswatini","Ethiopia","Falkland, Kepulauan","Faroe, Kepulauan","Fiji","Filipina","Finlandia","Gabon","Gambia","Georgia","Georgia Selatan dan Kepulauan Sandwich Selatan","Ghana","Gibraltar","Greenland","Grenada","Guadeloupe","Guam","Guatemala","Guernsey","Guinea","Guinea-Bissau","Guinea Khatulistiwa","Guyana","Guyana Prancis","Haiti","Heard dan Kepulauan McDonald, Pulau","Honduras","Hong Kong","Hongaria","Islandia","India","Indonesia","Irak","Iran","Irlandia, Republik","Israel","Italia","Jamaika","Jepang","Jerman","Jersey","Kaledonia Baru","Kamboja","Kamerun","Kanada","Kazakhstan","Kenya","Kiribati","Kirgizstan","Kolombia","Komoro","Kongo, Republik","Kongo, Republik Demokratik","Korea, Republik","Korea, Republik Rakyat Demokratik","Kosta Rika","Kroasia","Kuba","Kuwait","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lituania","Luksemburg","Makau","Makedonia, Republik","Madagaskar","Malawi","Malaysia","Maladewa","Mali","Malta","Man, Pulau","Mariana Utara, Kepulauan","Maroko","Marshall, Kepulauan","Martinik","Mauritania","Mauritius","Mayotte","Meksiko","Mikronesia, Federasi","Moldova","Mesir","Monako","Kepulauan Terluar Kecil Amerika Serikat","Mongolia","Montenegro","Montserrat","Mozambik","Myanmar","Namibia","Nauru","Natal, Pulau","Nepal","Nikaragua","Niger","Nigeria","Niue","Norfolk, Pulau","Norwegia","Oman","Pakistan","Palau","Palestina","Panama","Pantai Gading","Papua Nugini","Paraguay","Prancis","Prancis Selatan, Teritori","Peru","Pitcairn, Kepulauan","Polandia","Polinesia Prancis","Portugal","Puerto Rico","Qatar","Réunion","Rumania","Rusia","Rwanda","Sahara Barat","Saint-Barthélemy","Saint Helena, Ascension, dan Tristan da Cunha","Saint Kitts dan Nevis","Saint Lucia","Saint Martin (Prancis)","Saint Pierre dan Miquelon","Saint Vincent dan Grenadines","Samoa","Samoa Amerika","Samudra Hindia Britania, Teritori","San Marino","Sao Tome dan Principe","Selandia Baru","Senegal","Serbia","Seychelles","Sierra Leone","Singapura","Siprus","Slovenia","Slowakia","Solomon, Kepulauan","Somalia","Spanyol","Sri Lanka","Sudan","Suriah","Suriname","Svalbard dan Jan Mayen","Swedia","Swiss","Taiwan","Tajikistan","Tanjung Verde","Tanzania","Thailand","Timor Leste","Tiongkok, Republik Rakyat","Togo","Tokelau","Tonga","Trinidad dan Tobago","Tunisia","Turki","Turkmenistan","Turks dan Caicos, Kepulauan","Tuvalu","Uganda","Ukraina","Uni Emirat Arab","Uruguay","Uzbekistan","Vanuatu","Vatikan","Venezuela","Vietnam","Virgin Amerika Serikat, Kepulauan","Virgin Britania Raya, Kepulauan","Wallis dan Futuna","Yaman","Yordania","Yunani","Zambia","Zimbabwe",];
+                  
+                  /*initiate the autocomplete function on the "myInput" element, and pass along the countries array as possible autocomplete values:*/
+                  autocomplete(document.getElementById("ntujuan"), countries);
+              </script>
+          </div>
+          <input type="text" class="fullgridrow" name="detilAlasan" id="detilAlasan" placeholder="Detil Alasan" title="Sesuai Surat Permohonan" required>
+          <br></br>
+        </div>
+        <span style="font-size: 20px;">Detil Manifest:</span>
+        <div class="grid-manifest">
+          <input type="text" name="bc11" id="bc11" pattern="\d{6}" placeholder="BC 1.1" required>
+            <script>
+                var inputField = document.getElementById("bc11");
+
+                inputField.addEventListener("input", function() {
+                  this.value = this.value.replace(/[^0-9]/g, '');
+                  if (this.value.length > 6) {
+                    this.value = this.value.slice(0, 6);
+                  }
+                });
+
+                inputField.addEventListener("blur", function() {
+                  var paddedValue = String(this.value).padStart(6, "0");
+                  if (paddedValue === "000000" || paddedValue === "") {
+                    this.value = "";
+                  } else {
+                    this.value = paddedValue;
+                  }
+                });
+            </script>
+          <span style="font-size: 16px; margin-top: 2px; text-align: right;">Nomor Pos:</span>
+          <input type="text" name="pos" id="pos" pattern="\d{4}" placeholder="0000" required>
+            <script>
+                  var inputField = document.getElementById("pos");
+                  inputField.addEventListener("input", function() {
+                    this.value = this.value.replace(/[^0-9]/g, '');
+                    if (this.value.length > 4) {
+                      this.value = this.value.slice(0, 4);
+                    }
+                  });
+
+                  inputField.addEventListener("blur", function() {
+                    var paddedValue = String(this.value).padStart(4, "0");
+                    if (paddedValue === "0000" || paddedValue === "") {
+                      this.value = "";
+                    } else {
+                      this.value = paddedValue;
+                    }
+                  });
+            </script>
+          <input type="text" name="subpos" id="subpos" pattern="\d{4}" placeholder="0000" required>
+            <script>
+                  var inputField = document.getElementById("subpos");
+                  inputField.addEventListener("input", function() {
+                    this.value = this.value.replace(/[^0-9]/g, '');
+                    if (this.value.length > 4) {
+                      this.value = this.value.slice(0, 4);
+                    }
+                  });
+
+                  inputField.addEventListener("blur", function() {
+                    var paddedValue = String(this.value).padStart(4, "0");
+                    this.value = paddedValue;
+                  });
+            </script>
+          <input type="text" name="subsubpos" id="subsubpos" pattern="\d{4}" placeholder="0000" required>
+            <script>
+                var inputField = document.getElementById("subsubpos");
+                inputField.addEventListener("input", function() {
+                  this.value = this.value.replace(/[^0-9]/g, '');
+                  if (this.value.length > 4) {
+                    this.value = this.value.slice(0, 4);
+                  }
+                });
+
+                inputField.addEventListener("blur", function() {
+                  var paddedValue = String(this.value).padStart(4, "0");
+                  this.value = paddedValue;
+                });
+            </script>
+          <input type="date" name="tglbc11" id="tglbc11" required>
+          <div class="containerAwb">
+            <input type="text" class="mawb" name="mawb" id="mawb" placeholder="MAWB" title="Click to display Taggal HAWB" required>
+            <input type="text" class="hawb" name="hawb" id="hawb" placeholder="HAWB" required>
+            <input type="date" class="tglmawb" name="tglmawb" id="tglmawb" title="Tanggal MAWB" style="display: none; text-align: left;" required>
+            <input type="date" class="tglhawb" name="tglhawb" id="tglhawb" title="Tanggal HAWB" style="display: none; text-align: right;" required>
+              <script>
+                const mawb = document.getElementById("mawb");
+                const hawb = document.getElementById("hawb");
+                const tglmawb = document.getElementById("tglmawb");
+                const tglhawb = document.getElementById("tglhawb");
+
+                mawb.addEventListener("focus", function() {
+                  tglhawb.style.display = "none";
+                  tglmawb.style.display = "block";
+                  tglmawb.style.gridColumn = "1 / 3"; // Change grid-column
+                  if (tglmawb.value !== '' && tglmawb.value !== tglhawb.value && tglhawb.value !== '') {
+                    tglmawb.style.display = "block";
+                    tglhawb.style.display = "block";
+                    tglmawb.style.gridColumn = "1 / 2";
+                    tglhawb.style.gridColumn = "2 / 3";
+                  }
+                });
+
+                hawb.addEventListener("focus", function() {
+                  tglmawb.style.display = "none";
+                  tglhawb.style.display = "block";
+                  tglhawb.style.gridColumn = "1 / 3"; // Change grid-column
+                  if (tglhawb.value !== '' && tglhawb.value !== tglmawb.value && tglmawb.value !== '') {
+                    tglmawb.style.display = "block";
+                    tglhawb.style.display = "block";
+                    tglmawb.style.gridColumn = "1 / 2";
+                    tglhawb.style.gridColumn = "2 / 3";
+                  }
+                });
+
+                tglmawb.addEventListener("change", function() {
+                  if (tglmawb.value === '') {
+                    tglmawb.style.display = "block";
+                    tglmawb.style.gridColumn = "1 / 3";
+                  }
+                  if (tglmawb.value === tglhawb.value) {
+                    tglhawb.style.display = "none";
+                    tglmawb.style.display = "block";
+                    tglmawb.style.gridColumn = "1 / 3";
+                  }
+                  if (tglmawb.style.gridColumn === "1 / 3") {
+                    tglhawb.style.display = "none";
+                  }
+                  if (tglmawb.value !== '' && tglmawb.value !== tglhawb.value && tglhawb.value !== '') {
+                    tglmawb.style.display = "block";
+                    tglhawb.style.display = "block";
+                    tglmawb.style.gridColumn = "1 / 2";
+                    tglhawb.style.gridColumn = "2 / 3";
+                  }
+                  if (tglmawb.value !== '' && tglmawb.style.gridColumn === "1 / 2" && tglhawb.style.gridColumn === "2 / 3") {
+                    tglmawb.style.display = "block";
+                    tglmawb.style.gridColumn = "1 / 2";
+                    tglhawb.style.gridColumn = "2 / 3";
+                  }
+                });
+
+                tglhawb.addEventListener("change", function() {
+                  if (tglhawb.value === '') {
+                    tglhawb.style.display = "block";
+                    tglhawb.style.gridColumn = "1 / 3";
+                  }
+                  if (tglhawb.value === tglmawb.value) {
+                    tglmawb.style.display = "none";
+                    tglhawb.style.display = "block";
+                    tglhawb.style.gridColumn = "1 / 3";
+                  }
+                  if (tglhawb.style.gridColumn === "1 / 3") {
+                    tglmawb.style.display = "none";
+                  }
+                  if (tglhawb.value !== '' && tglhawb.value !== tglmawb.value && tglmawb.value !== '') {
+                    tglmawb.style.display = "block";
+                    tglhawb.style.display = "block";
+                    tglmawb.style.gridColumn = "1 / 2";
+                    tglhawb.style.gridColumn = "2 / 3";
+                  }
+                });
+
+                if (tglhawb.value === "") { // only update if tglhawb value is empty
+                    tglhawb.value = tglmawb.value;
+                  }
+              </script>
+            <input type="text" name="consignee" id="consignee" placeholder="Consigne" required>
+            <input type="text" id="shipper" name="shipper" placeholder="Shipper" required>
+          <div class="containerNegara">
+            <input type="checkbox" class="toggle" id="ntujuansama" title="Negara Tujuan Re Ekspor = Negara Shipper" checked>
+            <label for="ntujuansama">Negara Tujuan Sama</label>
+            <script>
+              const alasan = document.getElementById('alasan');
+              const input = document.getElementById('ntujuan');
+              const checkbox = document.getElementById('ntujuansama');
+
+              checkbox.addEventListener('change', function() {
+                if (!this.checked) {
+                  alasan.style.gridColumn = "1 / 2";
+                  input.style.display = 'block';
+                  input.style.gridColumn = "2 / 3";
+                } else {
+                  input.style.display = 'none';
+                  alasan.style.gridColumn = "1 / 3";
+                }
+              });
+            </script>
+            <input class="autocomplete" type="text" id="nshipper" name="nshipper" placeholder="Negara Shipper" required>
+              <script>
+                  function autocomplete(inp, arr) {
+                    /*the autocomplete function takes two arguments,
+                    the text field element and an array of possible autocompleted values:*/
+                    var currentFocus;
+                    /*execute a function when someone writes in the text field:*/
+                    inp.addEventListener("input", function(e) {
+                      var a, b, i, val = this.value;
+                      /*close any already open lists of autocompleted values*/
+                      closeAllLists();
+                      if (!val) { return false;}
+                      currentFocus = -1;
+                      /*create a DIV element that will contain the items (values):*/
+                      a = document.createElement("DIV");
+                      a.setAttribute("id", this.id + "autocomplete-list");
+                      a.setAttribute("class", "autocomplete-items");
+                      /*append the DIV element as a child of the autocomplete container:*/
+                      this.parentNode.appendChild(a);
+                      /*for each item in the array...*/
+                      for (i = 0; i < arr.length; i++) {
+                      /*check if the item starts with the same letters as the text field value:*/
+                      if (arr[i].substr(0, val.length).toUpperCase() == val.toUpperCase()) {
+                        /*create a DIV element for each matching element:*/
+                        b = document.createElement("DIV");
+                        /*make the matching letters bold:*/
+                        b.innerHTML = "<strong>" + arr[i].substr(0, val.length) + "</strong>";
+                        b.innerHTML += arr[i].substr(val.length);
+                        /*insert a input field that will hold the current array item's value:*/
+                        b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
+                        /*execute a function when someone clicks on the item value (DIV element):*/
+                        b.addEventListener("click", function(e) {
+                          /*insert the value for the autocomplete text field:*/
+                          inp.value = this.getElementsByTagName("input")[0].value;
+                          /*close the list of autocompleted values,
+                          (or any other open lists of autocompleted values:*/
+                          closeAllLists();
+                        });
+                        a.appendChild(b);
+                      }
+                      }
+                    });
+                    /*execute a function presses a key on the keyboard:*/
+                    inp.addEventListener("keydown", function(e) {
+                      var x = document.getElementById(this.id + "autocomplete-list");
+                      if (x) x = x.getElementsByTagName("div");
+                      if (e.keyCode == 40) {
+                      /*If the arrow DOWN key is pressed,
+                      increase the currentFocus variable:*/
+                      currentFocus++;
+                      /*and and make the current item more visible:*/
+                      addActive(x);
+                      } else if (e.keyCode == 38) { //up
+                      /*If the arrow UP key is pressed,
+                      decrease the currentFocus variable:*/
+                      currentFocus--;
+                      /*and and make the current item more visible:*/
+                      addActive(x);
+                      } else if (e.keyCode == 13) {
+                      /*If the ENTER key is pressed, prevent the form from being submitted,*/
+                      e.preventDefault();
+                      if (currentFocus > -1) {
+                        /*and simulate a click on the "active" item:*/
+                        if (x) x[currentFocus].click();
+                      }
+                      }
+                    });
+                    function addActive(x) {
+                    /*a function to classify an item as "active":*/
+                    if (!x) return false;
+                    /*start by removing the "active" class on all items:*/
+                    removeActive(x);
+                    if (currentFocus >= x.length) currentFocus = 0;
+                    if (currentFocus < 0) currentFocus = (x.length - 1);
+                    /*add class "autocomplete-active":*/
+                    x[currentFocus].classList.add("autocomplete-active");
+                    }
+                    function removeActive(x) {
+                    /*a function to remove the "active" class from all autocomplete items:*/
+                    for (var i = 0; i < x.length; i++) {
+                      x[i].classList.remove("autocomplete-active");
+                    }
+                    }
+                    function closeAllLists(elmnt) {
+                    /*close all autocomplete lists in the document,
+                    except the one passed as an argument:*/
+                    var x = document.getElementsByClassName("autocomplete-items");
+                    for (var i = 0; i < x.length; i++) {
+                      if (elmnt != x[i] && elmnt != inp) {
+                      x[i].parentNode.removeChild(x[i]);
+                      }
+                    }
+                    }
+                    /*execute a function when someone clicks in the document:*/
+                    document.addEventListener("click", function (e) {
+                      closeAllLists(e.target);
+                    });
+                  }
+                  
+                  /*An array containing all the country names in the world:*/
+                  var countries = ["Afganistan","Afrika Selatan","Afrika Tengah, Republik","Åland, Kepulauan","Albania","Aljazair","Amerika Serikat","Andorra","Angola","Anguilla","Antarktika","Antigua dan Barbuda","Antillen Belanda","Arab Saudi","Argentina","Armenia","Aruba","Australia","Austria","Azerbaijan","Bahama","Bahrain","Bangladesh","Barbados","Belanda","Belarus","Belgia","Belize","Benin","Bermuda","Bhutan","Bolivia","Bosnia dan Herzegovina","Botswana","Bouvet, Pulau","Brasil","Britania Raya","Brunei","Bulgaria","Burkina Faso","Burundi","Cayman, Kepulauan","Chad","Ceko, Republik","Chili","Cocos (Keeling), Kepulauan","Cook, Kepulauan","Denmark","Djibouti","Dominika","Dominika, Republik","Ekuador","El Salvador","Eritrea","Estonia","Eswatini","Ethiopia","Falkland, Kepulauan","Faroe, Kepulauan","Fiji","Filipina","Finlandia","Gabon","Gambia","Georgia","Georgia Selatan dan Kepulauan Sandwich Selatan","Ghana","Gibraltar","Greenland","Grenada","Guadeloupe","Guam","Guatemala","Guernsey","Guinea","Guinea-Bissau","Guinea Khatulistiwa","Guyana","Guyana Prancis","Haiti","Heard dan Kepulauan McDonald, Pulau","Honduras","Hong Kong","Hongaria","Islandia","India","Indonesia","Irak","Iran","Irlandia, Republik","Israel","Italia","Jamaika","Jepang","Jerman","Jersey","Kaledonia Baru","Kamboja","Kamerun","Kanada","Kazakhstan","Kenya","Kiribati","Kirgizstan","Kolombia","Komoro","Kongo, Republik","Kongo, Republik Demokratik","Korea, Republik","Korea, Republik Rakyat Demokratik","Kosta Rika","Kroasia","Kuba","Kuwait","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lituania","Luksemburg","Makau","Makedonia, Republik","Madagaskar","Malawi","Malaysia","Maladewa","Mali","Malta","Man, Pulau","Mariana Utara, Kepulauan","Maroko","Marshall, Kepulauan","Martinik","Mauritania","Mauritius","Mayotte","Meksiko","Mikronesia, Federasi","Moldova","Mesir","Monako","Kepulauan Terluar Kecil Amerika Serikat","Mongolia","Montenegro","Montserrat","Mozambik","Myanmar","Namibia","Nauru","Natal, Pulau","Nepal","Nikaragua","Niger","Nigeria","Niue","Norfolk, Pulau","Norwegia","Oman","Pakistan","Palau","Palestina","Panama","Pantai Gading","Papua Nugini","Paraguay","Prancis","Prancis Selatan, Teritori","Peru","Pitcairn, Kepulauan","Polandia","Polinesia Prancis","Portugal","Puerto Rico","Qatar","Réunion","Rumania","Rusia","Rwanda","Sahara Barat","Saint-Barthélemy","Saint Helena, Ascension, dan Tristan da Cunha","Saint Kitts dan Nevis","Saint Lucia","Saint Martin (Prancis)","Saint Pierre dan Miquelon","Saint Vincent dan Grenadines","Samoa","Samoa Amerika","Samudra Hindia Britania, Teritori","San Marino","Sao Tome dan Principe","Selandia Baru","Senegal","Serbia","Seychelles","Sierra Leone","Singapura","Siprus","Slovenia","Slowakia","Solomon, Kepulauan","Somalia","Spanyol","Sri Lanka","Sudan","Suriah","Suriname","Svalbard dan Jan Mayen","Swedia","Swiss","Taiwan","Tajikistan","Tanjung Verde","Tanzania","Thailand","Timor Leste","Tiongkok, Republik Rakyat","Togo","Tokelau","Tonga","Trinidad dan Tobago","Tunisia","Turki","Turkmenistan","Turks dan Caicos, Kepulauan","Tuvalu","Uganda","Ukraina","Uni Emirat Arab","Uruguay","Uzbekistan","Vanuatu","Vatikan","Venezuela","Vietnam","Virgin Amerika Serikat, Kepulauan","Virgin Britania Raya, Kepulauan","Wallis dan Futuna","Yaman","Yordania","Yunani","Zambia","Zimbabwe",];
+                  
+                  /*initiate the autocomplete function on the "myInput" element, and pass along the countries array as possible autocomplete values:*/
+                  autocomplete(document.getElementById("nshipper"), countries);
+                </script>
+          </div>
+          </div>
+        </div>
+        <br>
+        <span style="font-size: 20px;">Detil Barang:</span>
+        <div class="grid-barang">
+          <div class="containerBarang">
+            <input type="number" size="10" min="1" max="999" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 3)" name="jumlah" id="jumlah" style="overflow-y: scroll; text-align: right;" placeholder="Jumlah" required>
+            <div style="margin-top: 2px;">
+              <input type="radio" id="ct" name="satuan" value="Carton" required>Carton</label>
+              <input type="radio" id="pk" name="satuan" value="Package" required>Package</label>
+            </div>
+            <div class="containerBerat">
+              <input type="text" id="berat" name="berat" placeholder="Berat" style="border: none; text-align: right;" required>
+                <script>
+                    var inputField = document.getElementById("berat");
+                    inputField.addEventListener("input", function() {
+                      this.value = this.value.replace(/[^0-9,.]/g, ''); // allow comma and dot
+                      this.value = this.value.replace(".", ","); // replace dot with comma
+                      var decimalIndex = this.value.indexOf(",");
+                      if (decimalIndex !== -1) {
+                        var decimalPart = this.value.slice(decimalIndex + 1);
+                        decimalPart = decimalPart.replace(/[^0-9]/g, ''); // only allow digits
+                        decimalPart = decimalPart.slice(0, 2); // limit to 2 digits after comma
+                        this.value = this.value.slice(0, decimalIndex + 1) + decimalPart; // replace decimal part
+                        var integerPart = this.value.slice(0, decimalIndex);
+                        integerPart = integerPart.slice(0, 4); // limit to 3 digits before comma
+                        this.value = integerPart + "," + decimalPart; // replace integer part
+                      } else if (this.value.length > 3) {
+                        this.value = this.value.slice(0, 4); // limit to 3 digits
+                      } else if (this.value.endsWith(",")) {
+                        this.value += "00"; // automatically add .00 if ends with comma
+                      } else if (this.value.endsWith(".")) {
+                        this.value = this.value.slice(0, -1) + ",00"; // replace dot with comma and add .00
+                      }
+                    });
+                </script>
+              <span style="margin-top: 3px;">kg</span>
+            </div>
+          </div>
+          <div class="containerUraian">
+            <input type="text" id="uraian" name="uraian" placeholder="Uraian Barang" required>
+            <input type="text" id="kodehs" name="kodehs" placeholder="Kode HS" required>
+              <script>
+                var inputField = document.getElementById("kodehs");
+                inputField.addEventListener("input", function() {
+                  this.value = this.value.replace(/[^0-9]/g, '');
+                  if (this.value.length > 8) {
+                    this.value = this.value.slice(0, 8);
+                  }
+                });
+                inputField.addEventListener("blur", function() {
+                  var paddedValue = String(this.value).padStart(8, "0");
+                  var formattedValue = paddedValue.slice(0, 4) + "." + paddedValue.slice(4, 6) + "." + paddedValue.slice(6, 8);
+                  if (paddedValue === "00000000" || paddedValue === "") {
+                      this.value = "";
+                    } else {
+                      this.value = formattedValue;
+                    }
+                  });
+              </script>
+          </div>
+          <div class="containerFungsi">
+            <input type="text" id="fungsi" name="fungsi" placeholder="Fungsi Barang" disabled>
+            <input type="checkbox" class="toggle" id="toggleFungsi" onchange="resetFungsi()">
+              <script>
+                  function toggleFungsi(disabled) {
+                      document.getElementById("fungsi").disabled = disabled;
+                    };
+
+                    document.getElementById("toggleFungsi").addEventListener("change", function() {
+                      if (this.checked) {
+                        toggleFungsi(false);
+                      } else {
+                        toggleFungsi(true);
+                      }
+                    });
+                  function resetFungsi() {
+                    document.getElementById("fungsi").value ="";
+                  };
+
+
+                  const notRequiredFungsi = document.getElementById('toggleFungsi');
+                  const fungsi = document.getElementById('fungsi');
+
+                  notRequiredFungsi.addEventListener('change', () => {
+                  if (notRequiredFungsi.checked) {
+                    fungsi.setAttribute('required', '');
+                  } else {
+                    fungsi.removeAttribute('required');
+                  }
+                });
+              </script>
+          </div>
+        </div>
+        <br>
+        <div class="grid-lain" style="display: none;">
+          <span style="font-size: 20px;">Detil Lartas:</span>
+          <div class="containerSpbl">
+            <input type="text" id="spbl" name="spbl" pattern="\d{6}" placeholder="Nomor SPBL" disabled required>
+              <script>
+                var inputField = document.getElementById("spbl");
+                inputField.addEventListener("input", function() {
+                  this.value = this.value.replace(/[^0-9]/g, '');
+                  if (this.value.length > 6) {
+                    this.value = this.value.slice(0, 6);
+                  }
+                });
+
+                inputField.addEventListener("blur", function() {
+                  var paddedValue = String(this.value).padStart(6, "0");
+                  if (paddedValue === "000000" || paddedValue === "") {
+                    this.value = "";
+                  } else {
+                    this.value = paddedValue;
+                  }
+                });
+              </script>
+            <input type="date" id="tglspbl" name="tglspbl" disabled required>
+            <input type="checkbox" class="toggle" id="nonspbl" onchange="resetSpbl()">
+              <script>
+                  function nonspbl(disabled) {
+                      document.getElementById("spbl").disabled = disabled;
+                      document.getElementById("tglspbl").disabled = disabled;
+                    }
+
+                    document.getElementById("nonspbl").addEventListener("change", function() {
+                      if (this.checked) {
+                        nonspbl(false);
+                      } else {
+                        nonspbl(true);
+                      }
+                    });
+                  function resetSpbl() {
+                    document.getElementById("spbl").value ="";
+                    document.getElementById("tglspbl").value ="";
+                  };
+
+
+                  const notRequiredSpbl = document.getElementById('nonspbl');
+                  const spbl = document.getElementById('spbl');
+                  const tglspbl = document.getElementById('tglspbl');
+
+                  notRequiredSpbl.addEventListener('change', () => {
+                  if (notRequiredSpbl.checked) {
+                    spbl.setAttribute('required', '');
+                    tglspbl.setAttribute('required', '');
+                  } else {
+                    spbl.removeAttribute('required');
+                    tglspbl.removeAttribute('required');
+                  }
+                });
+              </script>
+          </div>
+          <input type="text" id="dasarHukum" name="dasarHukum" placeholder="Dasar Hukum Lartas" required>
+        </div>
+
+        <div class="button">
+          <button type="reset" value="reset" style="outline: none;">Reset</button>
+          <button type="submit" value="submit" onmouseover="updateField()" style="outline: none;">Submit</button>
+        </div>
+        <script>//script to update field
+          function updateField() {
+            var tglmawb = document.getElementById("tglmawb");
+            var tglhawb = document.getElementById("tglhawb");
+            var nshipper = document.getElementById("nshipper");
+            var ntujuansama = document.getElementById("ntujuansama");
+            var ntujuan = document.getElementById("ntujuan");
+
+            if (tglhawb.value === "") { // only update if tglhawb value is empty
+              tglhawb.value = tglmawb.value;
+            }
+
+            if (ntujuansama.checked) {
+              ntujuan.value = nshipper.value;
+            }
+          }
+        </script>
+
+        <script>//script to display Detil Lartas
+          const select = document.getElementById("alasan");
+          const gridlain = document.querySelector(".grid-lain");
+          const button = document.querySelector(".button");
+
+          select.addEventListener("change", function() {
+            if (select.value === "Barang Lartas") {
+              gridlain.style.display = "block";
+              button.style.marginTop = '30px';
+              
+            } else {
+              gridlain.style.display = "none";
+              button.style.marginTop = '0px';
+            }
+          });
+        </script>
+        
+        <script>//to prevent picking date beyond today
+          var today = new Date().toISOString().split('T')[0];
+          var dateInputs = document.querySelectorAll("input[type='date']");
+
+          dateInputs.forEach(function(input) {
+            input.setAttribute("max", today);
+            input.addEventListener("input", function() {
+              if (this.value > today) {
+                this.value = today;
+              }
+            });
+          });
+        </script>
+      </form>
+    </div>
+    <script>
+      document.getElementById("reForm").addEventListener("submit", (event) => {
+        event.preventDefault(); // prevent default form submission
+        
+        // get input values
+        const formData = new FormData(event.target);
+        const siapterbang = formData.get("siapterbang");
+        const ppjk = formData.get("ppjk");
+        const alamat = formData.get("alamat");
+        const consignee = formData.get("consignee");
+        const noSurat = formData.get("noSurat");
+        const tglSurat = formData.get("tglSurat");
+        const alasan = formData.get("alasan");
+        const detilAlasan = formData.get("detilAlasan");
+        const bc11 = formData.get("bc11");
+        const pos = formData.get("pos");
+        const subpos = formData.get("subpos");
+        const subsubpos = formData.get("subsubpos");
+        const tglbc11 = formData.get("tglbc11");
+        const mawb = formData.get("mawb");
+        const hawb = formData.get("hawb");
+        const tglmawb = formData.get("tglmawb");
+        const tglhawb = formData.get("tglhawb");
+        const jumlah = formData.get("jumlah");
+        const satuan = formData.get("satuan");
+        const berat = formData.get("berat");
+        const uraian = formData.get("uraian");
+        const kodehs = formData.get("kodehs");
+        const fungsi = formData.get("fungsi");
+        const shipper = formData.get("shipper");
+        const nshipper = formData.get("nshipper");
+        const ntujuan = formData.get("ntujuan");
+        const spbl = formData.get("spbl");
+        const tglspbl = formData.get("tglspbl");
+        const dasarHukum = formData.get("dasarHukum");
+        // add more input fields here
+        
+        // submit data to Google Apps Script
+        google.script.run.withSuccessHandler(() => {
+          alert("Data submitted successfully!");
+          // clear form inputs
+          document.getElementById("reForm").reset();
+        }).withFailureHandler((error) => {
+          alert("An error occurred: " + error.message);
+        }).submitData(siapterbang, ppjk, alamat, consignee, noSurat, tglSurat, alasan, detilAlasan, bc11, pos, subpos, subsubpos, tglbc11, mawb, hawb, tglmawb, tglhawb, jumlah, satuan, berat, uraian, kodehs, fungsi, shipper, nshipper, ntujuan, spbl, tglspbl, dasarHukum);
+      });
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+      <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <div id="response"></div>
+  </body>
+</html>
