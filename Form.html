@@ -3,6 +3,9 @@
   <head>
     <base target="_top">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <meta name="viewport" content="width=device-width, initial-scale=1.9">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.0.0/dist/jsQR.js"></script>
 
   <style>
     //Pop up Window for Form Re-ekspor
@@ -22,36 +25,38 @@
       z-index: 999;
       overflow-y: auto; /* allow scrolling */
     }
-
     //Grid Permohonan
     .containerSiapterbang {
       display: grid;
-      grid-template-columns: 110px 348px;
+      grid-template-columns: 110px 344px;
     }
     .fullgridrow {
-      width: 100%
+      width: 454px;
     }
     .containerPermohonan {
       display: grid;
-      grid-template-columns: 318px 140px;
+      grid-template-columns: 314px 140px;
     }
-    .containerAlasan {
+
+    .containerDetilAlasan {
       display: grid;
-      grid-template-columns: 229px 229px;
+      grid-template-columns: 227px 227px;
     }
-    #alasan {
+    #detilAlasan {
       grid-column: 1 / 3;
+      resize: vertical;
       height: 30px;
+      min-height: 30px;
     }
 
     //Grid Detil Manifest
     .grid-manifest {
       display: grid;
-      grid-template-columns: 74px 94px 50px 50px 50px 140px;
+      grid-template-columns: 74px 90px 50px 50px 50px 140px;
     }
     .containerAwb {
       display: grid;
-      grid-template-columns: 229px 229px;
+      grid-template-columns: 227px 227px;
     }
     //Grid Detil Barang
     #ct {
@@ -59,39 +64,53 @@
     }
     .containerBarang {
       display: grid;
-      grid-template-columns: 80px 288px 50px;
+      grid-template-columns: 80px 284px 50px;
     }
     .containerBerat {
       display: grid;
-      grid-template-columns: 65px 24px;
+      grid-template-columns: 61px 24px;
       text-align: right;
     }
     .containerUraian {
       display: grid;
-      grid-template-columns: 368px 90px;
+      grid-template-columns: 364px 90px;
     }
-    .containerFungsi {
-      display: grid;
-      grid-template-columns: 407px 10px;
-    }
-    #toggleFungsi {
-      margin-left: 10px;
+    #uraian {
+      grid-column: 1 / 3;
+      resize: vertical;
+      height: 30px;
+      min-height: 30px;
     }
     .containerNegara {
       display: grid;
-      grid-template-columns: 50px 179px 229px;
+      grid-template-columns: 50px 177px 227px;
     }
 
     //Grid Detil Lain
     .containerSpbl {
       display: grid;
-      grid-template-columns: 267px 140px 50px;
+      grid-template-columns: 314px 140px;
     }
-    #nonspbl {
-      margin-left: 10px;
+
+    .grid-lain {
+      margin-Bottom: 20px;
     }
-    #dasarHukum {
-      width: 100%;
+    #ketentuan {
+      grid-column: 1 / 3;
+      resize: vertical;
+      height: 30px;
+      min-height: 30px;
+    }
+
+    .containerButton {
+      display: grid;
+      grid-template-columns: 227px 227px;
+    }
+    #resetButton {
+      grid-column: 1 / 2;
+    }
+    #nextButton {
+      grid-column: 2 / 3;
     }
 
     //style for toggle
@@ -126,627 +145,606 @@
     .toggle:checked::before {
       left: 16px;
     }
-    .button {
-      margin-top: 0px;
+
+    //loading screen
+    #loading-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.6);
+      z-index: 99999;
+    }
+
+    #loading-spinner {
+      position: absolute;
+      top: 40%;
+      left: 47%;
+      transform: translate(-50%, -50%);
+      border: 16px solid #f3f3f3;
+      border-top: 16px solid #3498db;
+      border-radius: 50%;
+      width: 100px;
+      height: 100px;
+      animation: spin 2s linear infinite;
+    }
+
+    #loading-message {
+      position: absolute;
+      top: 60%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
 
 	</style>
   </head>
   <body>
     <div class="form-container">
-      <form id="reForm">
-        <h1 style="text-align:center;">FORM RE-EKSPOR</h1><br>
-        <span style="font-size: 20px;">Permohonan:</span>
-        <div class="grid-permohonan">
-          <div class="containerSiapterbang">
-            <input type="text" name="siapterbang" id="siapterbang" title="M.###/####" placeholder="Siapterbang" required>
-            <input type="text" name="ppjk" id="ppjk" placeholder="PPJK" required>
-          </div>
-          <input type="text" class="fullgridrow" name="alamat" id="alamat" placeholder="Alamat PPJK" required>
-          <div class="containerPermohonan">
-            <input type="text" name="noSurat" id="noSurat" placeholder="Nomor Surat Permohonan">
-            <input type="date" name="tglSurat" id="tglSurat">
-          </div>
-          <div class="containerAlasan">
-            <select id="alasan" name="alasan" required>
-              <option value="" hidden>Alasan Re-ekspor</option>
-              <option value="Tidak Sesuai Pesanan">Tidak Sesuai Pesanan</option>
-              <option value="Salah Kirim">Salah Kirim</option>
-              <option value="Cross Label">Cross Label</option>
-              <option value="Rusak">Rusak</option>
-              <option value="Barang Lartas">Barang Lartas</option>
-            </select>
-            <input type="text" id="ntujuan" name="ntujuan" placeholder="Negara Tujuan Re-Ekspor" style="display: none;" required>
-            <script>
-                  function autocomplete(inp, arr) {
-                    /*the autocomplete function takes two arguments,
-                    the text field element and an array of possible autocompleted values:*/
-                    var currentFocus;
-                    /*execute a function when someone writes in the text field:*/
-                    inp.addEventListener("input", function(e) {
-                      var a, b, i, val = this.value;
-                      /*close any already open lists of autocompleted values*/
-                      closeAllLists();
-                      if (!val) { return false;}
-                      currentFocus = -1;
-                      /*create a DIV element that will contain the items (values):*/
-                      a = document.createElement("DIV");
-                      a.setAttribute("id", this.id + "autocomplete-list");
-                      a.setAttribute("class", "autocomplete-items");
-                      /*append the DIV element as a child of the autocomplete container:*/
-                      this.parentNode.appendChild(a);
-                      /*for each item in the array...*/
-                      for (i = 0; i < arr.length; i++) {
-                      /*check if the item starts with the same letters as the text field value:*/
-                      if (arr[i].substr(0, val.length).toUpperCase() == val.toUpperCase()) {
-                        /*create a DIV element for each matching element:*/
-                        b = document.createElement("DIV");
-                        /*make the matching letters bold:*/
-                        b.innerHTML = "<strong>" + arr[i].substr(0, val.length) + "</strong>";
-                        b.innerHTML += arr[i].substr(val.length);
-                        /*insert a input field that will hold the current array item's value:*/
-                        b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
-                        /*execute a function when someone clicks on the item value (DIV element):*/
-                        b.addEventListener("click", function(e) {
-                          /*insert the value for the autocomplete text field:*/
-                          inp.value = this.getElementsByTagName("input")[0].value;
-                          /*close the list of autocompleted values,
-                          (or any other open lists of autocompleted values:*/
-                          closeAllLists();
-                        });
-                        a.appendChild(b);
-                      }
-                      }
-                    });
-                    /*execute a function presses a key on the keyboard:*/
-                    inp.addEventListener("keydown", function(e) {
-                      var x = document.getElementById(this.id + "autocomplete-list");
-                      if (x) x = x.getElementsByTagName("div");
-                      if (e.keyCode == 40) {
-                      /*If the arrow DOWN key is pressed,
-                      increase the currentFocus variable:*/
-                      currentFocus++;
-                      /*and and make the current item more visible:*/
-                      addActive(x);
-                      } else if (e.keyCode == 38) { //up
-                      /*If the arrow UP key is pressed,
-                      decrease the currentFocus variable:*/
-                      currentFocus--;
-                      /*and and make the current item more visible:*/
-                      addActive(x);
-                      } else if (e.keyCode == 13) {
-                      /*If the ENTER key is pressed, prevent the form from being submitted,*/
-                      e.preventDefault();
-                      if (currentFocus > -1) {
-                        /*and simulate a click on the "active" item:*/
-                        if (x) x[currentFocus].click();
-                      }
-                      }
-                    });
-                    function addActive(x) {
-                    /*a function to classify an item as "active":*/
-                    if (!x) return false;
-                    /*start by removing the "active" class on all items:*/
-                    removeActive(x);
-                    if (currentFocus >= x.length) currentFocus = 0;
-                    if (currentFocus < 0) currentFocus = (x.length - 1);
-                    /*add class "autocomplete-active":*/
-                    x[currentFocus].classList.add("autocomplete-active");
-                    }
-                    function removeActive(x) {
-                    /*a function to remove the "active" class from all autocomplete items:*/
-                    for (var i = 0; i < x.length; i++) {
-                      x[i].classList.remove("autocomplete-active");
-                    }
-                    }
-                    function closeAllLists(elmnt) {
-                    /*close all autocomplete lists in the document,
-                    except the one passed as an argument:*/
-                    var x = document.getElementsByClassName("autocomplete-items");
-                    for (var i = 0; i < x.length; i++) {
-                      if (elmnt != x[i] && elmnt != inp) {
-                      x[i].parentNode.removeChild(x[i]);
-                      }
-                    }
-                    }
-                    /*execute a function when someone clicks in the document:*/
-                    document.addEventListener("click", function (e) {
-                      closeAllLists(e.target);
-                    });
-                  }
-                  
-                  /*An array containing all the country names in the world:*/
-                  var countries = ["Afganistan","Afrika Selatan","Afrika Tengah, Republik","Åland, Kepulauan","Albania","Aljazair","Amerika Serikat","Andorra","Angola","Anguilla","Antarktika","Antigua dan Barbuda","Antillen Belanda","Arab Saudi","Argentina","Armenia","Aruba","Australia","Austria","Azerbaijan","Bahama","Bahrain","Bangladesh","Barbados","Belanda","Belarus","Belgia","Belize","Benin","Bermuda","Bhutan","Bolivia","Bosnia dan Herzegovina","Botswana","Bouvet, Pulau","Brasil","Britania Raya","Brunei","Bulgaria","Burkina Faso","Burundi","Cayman, Kepulauan","Chad","Ceko, Republik","Chili","Cocos (Keeling), Kepulauan","Cook, Kepulauan","Denmark","Djibouti","Dominika","Dominika, Republik","Ekuador","El Salvador","Eritrea","Estonia","Eswatini","Ethiopia","Falkland, Kepulauan","Faroe, Kepulauan","Fiji","Filipina","Finlandia","Gabon","Gambia","Georgia","Georgia Selatan dan Kepulauan Sandwich Selatan","Ghana","Gibraltar","Greenland","Grenada","Guadeloupe","Guam","Guatemala","Guernsey","Guinea","Guinea-Bissau","Guinea Khatulistiwa","Guyana","Guyana Prancis","Haiti","Heard dan Kepulauan McDonald, Pulau","Honduras","Hong Kong","Hongaria","Islandia","India","Indonesia","Irak","Iran","Irlandia, Republik","Israel","Italia","Jamaika","Jepang","Jerman","Jersey","Kaledonia Baru","Kamboja","Kamerun","Kanada","Kazakhstan","Kenya","Kiribati","Kirgizstan","Kolombia","Komoro","Kongo, Republik","Kongo, Republik Demokratik","Korea, Republik","Korea, Republik Rakyat Demokratik","Kosta Rika","Kroasia","Kuba","Kuwait","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lituania","Luksemburg","Makau","Makedonia, Republik","Madagaskar","Malawi","Malaysia","Maladewa","Mali","Malta","Man, Pulau","Mariana Utara, Kepulauan","Maroko","Marshall, Kepulauan","Martinik","Mauritania","Mauritius","Mayotte","Meksiko","Mikronesia, Federasi","Moldova","Mesir","Monako","Kepulauan Terluar Kecil Amerika Serikat","Mongolia","Montenegro","Montserrat","Mozambik","Myanmar","Namibia","Nauru","Natal, Pulau","Nepal","Nikaragua","Niger","Nigeria","Niue","Norfolk, Pulau","Norwegia","Oman","Pakistan","Palau","Palestina","Panama","Pantai Gading","Papua Nugini","Paraguay","Prancis","Prancis Selatan, Teritori","Peru","Pitcairn, Kepulauan","Polandia","Polinesia Prancis","Portugal","Puerto Rico","Qatar","Réunion","Rumania","Rusia","Rwanda","Sahara Barat","Saint-Barthélemy","Saint Helena, Ascension, dan Tristan da Cunha","Saint Kitts dan Nevis","Saint Lucia","Saint Martin (Prancis)","Saint Pierre dan Miquelon","Saint Vincent dan Grenadines","Samoa","Samoa Amerika","Samudra Hindia Britania, Teritori","San Marino","Sao Tome dan Principe","Selandia Baru","Senegal","Serbia","Seychelles","Sierra Leone","Singapura","Siprus","Slovenia","Slowakia","Solomon, Kepulauan","Somalia","Spanyol","Sri Lanka","Sudan","Suriah","Suriname","Svalbard dan Jan Mayen","Swedia","Swiss","Taiwan","Tajikistan","Tanjung Verde","Tanzania","Thailand","Timor Leste","Tiongkok, Republik Rakyat","Togo","Tokelau","Tonga","Trinidad dan Tobago","Tunisia","Turki","Turkmenistan","Turks dan Caicos, Kepulauan","Tuvalu","Uganda","Ukraina","Uni Emirat Arab","Uruguay","Uzbekistan","Vanuatu","Vatikan","Venezuela","Vietnam","Virgin Amerika Serikat, Kepulauan","Virgin Britania Raya, Kepulauan","Wallis dan Futuna","Yaman","Yordania","Yunani","Zambia","Zimbabwe",];
-                  
-                  /*initiate the autocomplete function on the "myInput" element, and pass along the countries array as possible autocomplete values:*/
-                  autocomplete(document.getElementById("ntujuan"), countries);
-              </script>
-          </div>
-          <input type="text" class="fullgridrow" name="detilAlasan" id="detilAlasan" placeholder="Detil Alasan" title="Sesuai Surat Permohonan" required>
-          <br></br>
+      <h1 style="text-align:center;">FORM RE-EKSPOR</h1>
+      <form id="reForm" autocomplete="off">
+        <div class="containerCategory">
+          <select id="category" class="fullgridrow" name="category">
+            <option value="" hidden>Kategori Re-Ekspor</option>
+            <option value="terjadi ketidaksesuaian pesanan">Tidak Sesuai Pesanan</option>
+            <option value="terjadi salah kirim dari pelabuhan / negara asal / pemuatan">Salah Kirim</option>
+            <option value="terjadi kerusakan terhadap barang sebagaimana dimaksud">Rusak</option>
+            <option value="tidak dapat memenuhi ketentuan perijinan barang larangan dan/atau pembatasan sesuai dengan ketentuan perundangan yang berlaku">Sesuai Dengan Ketentuan Peraturan Perundang-undangan Sehingga Tidak Dapat Diimpor</option>
+          </select>
         </div>
-        <span style="font-size: 20px;">Detil Manifest:</span>
-        <div class="grid-manifest">
-          <input type="text" name="bc11" id="bc11" pattern="\d{6}" placeholder="BC 1.1" required>
+
+        <div id="checklists" class="fullgridrow">
+          <input type="checkbox" value="Surat Permohonan">Surat Permohonan</label><br>
+          <input type="checkbox" value="Surat Pernyataan Kepemilikan Barang">Surat Pernyataan Kepemilikan Barang</label><br>
+          <input type="checkbox" value="Surat Pernyataan Keaslian Dokumen">Surat Pernyataan Keaslian Dokumen</label><br>
+          <input type="checkbox" value="AWB">AWB</label><br>
+          <input type="checkbox" value="Invoice">Invoice</label><br>
+          <input type="checkbox" value="Packing List">Packing List</label><br>
+          <input type="checkbox" value="Surat Kuasa">Surat Kuasa</label><br>
+          <input type="checkbox" value="Surat Tugas">Surat Tugas Lengkap dengan scan Identitas</label><br>
+          <input type="checkbox" value="NIB">NIB</label><br>
+            
+          <div class="salahKirim" style="display: none;">
+            <input type="checkbox" value="Surat Pernyataan Shipper">Surat Pernyataan dari Shipper</label><br>
+          </div>
+          <div class="tdkSesuaiPesanan" style="display: none;">
+            <input type="checkbox" value="Puchase Order"d>Puchase Order</label><br>
+          </div>
+          <div class="rusak" style="display: none;">
+            <input type="checkbox" value="Laporan Barang Rusak">Laporan Kiriman Barang Rusak dari TPS</label><br>
+          </div>
+          <div class="clSpbl" style="display: none;">
+            <input type="checkbox" value="clSpbl" id="clSpbl">SPBL</label><br>
+          </div>
+        </div>
+
+        <div class="formInput" style="display: none;">
+          <span style="font-size: 20px;">Permohonan:</span>
+          <div class="grid-permohonan">
+            <select id="pemohon" class="fullgridrow" name="pemohon" hidden>
+                <option value="" hidden>Tipe Pemohon</option>
+                <option value="pemohonPpjk">PPJK</option>
+                <option value="pemohonCnee">Consignee</option>
+                <option value="pemohonPengangkut">Pengangkut atau NVOCC</option>
+              </select>
+            <div class="containerSiapterbang">
+              <input type="text" name="siapterbang" id="siapterbang" oninput="inputFormat()" title="M.###/####" placeholder="Siapterbang" required>
+              <script>// set format for Siapterbang
+                function inputFormat() {
+                  var inputField = document.getElementById("siapterbang");
+                  var value = inputField.value;
+                  
+                  // If first character is not "M" and is a number, add "M."
+                  if (value.length === 1 && !isNaN(value) && value !== "M") {
+                    inputField.value = "M." + value;
+                  }
+                  // If first character is "M", keep it as is.
+                  else if (value.length === 1 && value === "M") {
+                    inputField.value = value;
+                  }
+                  // Replace any characters that are not allowed.
+                  else {
+                    inputField.value = value.replace(/[^0-9M./_-]/g, "");
+                    inputField.value = inputField.value.replace(/[-_]/g, "/");
+                  }
+                  // Limit the input to 12 characters
+                  if (inputField.value.length > 12) {
+                    inputField.value = inputField.value.substring(0, 12);
+                  }
+                }
+              </script>
+              <input type="text" name="ppjk" id="ppjk" placeholder="PPJK" style="text-transform: capitalize;" required>
+            </div>
+            <input type="text" class="fullgridrow" name="alamat" id="alamat" placeholder="Alamat PPJK" required>
             <script>
-                var inputField = document.getElementById("bc11");
+              // Define an array of PPJK and Alamat PPJK
+              var ppjkArray = [
+                { ppjk: "PT Birotika Semesta", alamat: "Soewarna Business Park Blok A Lot 7 A-B, Bandara Internasional Soekarno-Hatta" },
+                { ppjk: "PT Fedex Express International", alamat: "Soewarna Business Park Blok A Lot 5-6, Bandara Internasional Soekarno-Hatta" },
+                { ppjk: "PT Chandra Adi Sentosa", alamat: "Jl. Pajajaran no 156 Bandung" },
+                { ppjk: "PT Jasa Angkasa Semesta", alamat: "Gudang 521 Area Kargo Bandara Soekarno-Hatta" },
+                // Add more PPJK and Alamat PPJK as needed
+              ];
 
-                inputField.addEventListener("input", function() {
-                  this.value = this.value.replace(/[^0-9]/g, '');
-                  if (this.value.length > 6) {
-                    this.value = this.value.slice(0, 6);
-                  }
+              // Get references to the input elements
+              var ppjkInput = document.getElementById("ppjk");
+              var alamatInput = document.getElementById("alamat");
+
+              // Add event listener for changes in the "ppjk" field
+              ppjkInput.addEventListener("keyup", function() {
+                var selectedPPJK = ppjkInput.value;
+
+                // Find the matching Alamat PPJK based on the selected PPJK
+                var matchedAlamat = ppjkArray.find(function(item) {
+                  return item.ppjk === selectedPPJK;
                 });
 
-                inputField.addEventListener("blur", function() {
-                  var paddedValue = String(this.value).padStart(6, "0");
-                  if (paddedValue === "000000" || paddedValue === "") {
-                    this.value = "";
-                  } else {
-                    this.value = paddedValue;
-                  }
-                });
+                // Set the value of the "alamat" field with the matched Alamat PPJK
+                alamatInput.value = matchedAlamat ? matchedAlamat.alamat : "";
+              });
             </script>
-          <span style="font-size: 16px; margin-top: 2px; text-align: right;">Nomor Pos:</span>
-          <input type="text" name="pos" id="pos" pattern="\d{4}" placeholder="0000" required>
-            <script>
-                  var inputField = document.getElementById("pos");
+            <div class="containerPermohonan">
+              <input type="text" name="noSurat" id="noSurat" placeholder="Nomor Surat Permohonan">
+              <input type="date" name="tglSurat" id="tglSurat" required>
+            </div>
+            <div class="containerDetilAlasan">
+              <textarea id="detilAlasan" name="detilAlasan" placeholder="Detil Alasan" title="Sesuai Surat Permohonan" required></textarea>
+              <input type="text" id="ntujuan" name="ntujuan" placeholder="Negara Tujuan Re-Ekspor" style="display: none;">
+            </div>
+          </div>
+          <br>
+
+          <span style="font-size: 20px;">Detil Manifest:</span>
+          <div class="grid-manifest">
+            <input type="text" name="bc11" id="bc11" pattern="\d{6}" placeholder="BC 1.1" required>
+              <script>// set format for BC 1.1
+                  var inputField = document.getElementById("bc11");
+
                   inputField.addEventListener("input", function() {
                     this.value = this.value.replace(/[^0-9]/g, '');
-                    if (this.value.length > 4) {
-                      this.value = this.value.slice(0, 4);
+                    if (this.value.length > 6) {
+                      this.value = this.value.slice(0, 6);
                     }
                   });
 
                   inputField.addEventListener("blur", function() {
-                    var paddedValue = String(this.value).padStart(4, "0");
-                    if (paddedValue === "0000" || paddedValue === "") {
+                    var paddedValue = String(this.value).padStart(6, "0");
+                    if (paddedValue === "000000" || paddedValue === "") {
                       this.value = "";
                     } else {
                       this.value = paddedValue;
                     }
                   });
-            </script>
-          <input type="text" name="subpos" id="subpos" pattern="\d{4}" placeholder="0000" required>
-            <script>
-                  var inputField = document.getElementById("subpos");
-                  inputField.addEventListener("input", function() {
+              </script>
+            <span style="font-size: 16px; margin-top: 2px; text-align: right;">Nomor Pos:</span>
+            <input type="text" name="pos" id="pos" pattern="\d{4}" placeholder="0000" required>
+            <input type="text" name="subpos" id="subpos" pattern="\d{4}" placeholder="0000">
+            <input type="text" name="subsubpos" id="subsubpos" pattern="\d{4}" placeholder="0000">
+              <script>// set formatting for Pos, Sub Pos and Sub-sub Pos
+                var inputFields = document.querySelectorAll("#pos, #subpos, #subsubpos");
+                for (var i = 0; i < inputFields.length; i++) {
+                  inputFields[i].addEventListener("input", function() {
                     this.value = this.value.replace(/[^0-9]/g, '');
                     if (this.value.length > 4) {
                       this.value = this.value.slice(0, 4);
                     }
                   });
 
-                  inputField.addEventListener("blur", function() {
+                  inputFields[i].addEventListener("blur", function() {
                     var paddedValue = String(this.value).padStart(4, "0");
                     this.value = paddedValue;
                   });
-            </script>
-          <input type="text" name="subsubpos" id="subsubpos" pattern="\d{4}" placeholder="0000" required>
-            <script>
-                var inputField = document.getElementById("subsubpos");
-                inputField.addEventListener("input", function() {
-                  this.value = this.value.replace(/[^0-9]/g, '');
-                  if (this.value.length > 4) {
-                    this.value = this.value.slice(0, 4);
-                  }
-                });
-
-                inputField.addEventListener("blur", function() {
-                  var paddedValue = String(this.value).padStart(4, "0");
-                  this.value = paddedValue;
-                });
-            </script>
-          <input type="date" name="tglbc11" id="tglbc11" required>
-          <div class="containerAwb">
-            <input type="text" class="mawb" name="mawb" id="mawb" placeholder="MAWB" title="Click to display Taggal HAWB" required>
-            <input type="text" class="hawb" name="hawb" id="hawb" placeholder="HAWB" required>
-            <input type="date" class="tglmawb" name="tglmawb" id="tglmawb" title="Tanggal MAWB" style="display: none; text-align: left;" required>
-            <input type="date" class="tglhawb" name="tglhawb" id="tglhawb" title="Tanggal HAWB" style="display: none; text-align: right;" required>
-              <script>
-                const mawb = document.getElementById("mawb");
-                const hawb = document.getElementById("hawb");
-                const tglmawb = document.getElementById("tglmawb");
-                const tglhawb = document.getElementById("tglhawb");
-
-                mawb.addEventListener("focus", function() {
-                  tglhawb.style.display = "none";
-                  tglmawb.style.display = "block";
-                  tglmawb.style.gridColumn = "1 / 3"; // Change grid-column
-                  if (tglmawb.value !== '' && tglmawb.value !== tglhawb.value && tglhawb.value !== '') {
-                    tglmawb.style.display = "block";
-                    tglhawb.style.display = "block";
-                    tglmawb.style.gridColumn = "1 / 2";
-                    tglhawb.style.gridColumn = "2 / 3";
-                  }
-                });
-
-                hawb.addEventListener("focus", function() {
-                  tglmawb.style.display = "none";
-                  tglhawb.style.display = "block";
-                  tglhawb.style.gridColumn = "1 / 3"; // Change grid-column
-                  if (tglhawb.value !== '' && tglhawb.value !== tglmawb.value && tglmawb.value !== '') {
-                    tglmawb.style.display = "block";
-                    tglhawb.style.display = "block";
-                    tglmawb.style.gridColumn = "1 / 2";
-                    tglhawb.style.gridColumn = "2 / 3";
-                  }
-                });
-
-                tglmawb.addEventListener("change", function() {
-                  if (tglmawb.value === '') {
-                    tglmawb.style.display = "block";
-                    tglmawb.style.gridColumn = "1 / 3";
-                  }
-                  if (tglmawb.value === tglhawb.value) {
-                    tglhawb.style.display = "none";
-                    tglmawb.style.display = "block";
-                    tglmawb.style.gridColumn = "1 / 3";
-                  }
-                  if (tglmawb.style.gridColumn === "1 / 3") {
-                    tglhawb.style.display = "none";
-                  }
-                  if (tglmawb.value !== '' && tglmawb.value !== tglhawb.value && tglhawb.value !== '') {
-                    tglmawb.style.display = "block";
-                    tglhawb.style.display = "block";
-                    tglmawb.style.gridColumn = "1 / 2";
-                    tglhawb.style.gridColumn = "2 / 3";
-                  }
-                  if (tglmawb.value !== '' && tglmawb.style.gridColumn === "1 / 2" && tglhawb.style.gridColumn === "2 / 3") {
-                    tglmawb.style.display = "block";
-                    tglmawb.style.gridColumn = "1 / 2";
-                    tglhawb.style.gridColumn = "2 / 3";
-                  }
-                });
-
-                tglhawb.addEventListener("change", function() {
-                  if (tglhawb.value === '') {
-                    tglhawb.style.display = "block";
-                    tglhawb.style.gridColumn = "1 / 3";
-                  }
-                  if (tglhawb.value === tglmawb.value) {
-                    tglmawb.style.display = "none";
-                    tglhawb.style.display = "block";
-                    tglhawb.style.gridColumn = "1 / 3";
-                  }
-                  if (tglhawb.style.gridColumn === "1 / 3") {
-                    tglmawb.style.display = "none";
-                  }
-                  if (tglhawb.value !== '' && tglhawb.value !== tglmawb.value && tglmawb.value !== '') {
-                    tglmawb.style.display = "block";
-                    tglhawb.style.display = "block";
-                    tglmawb.style.gridColumn = "1 / 2";
-                    tglhawb.style.gridColumn = "2 / 3";
-                  }
-                });
-
-                if (tglhawb.value === "") { // only update if tglhawb value is empty
-                    tglhawb.value = tglmawb.value;
-                  }
-              </script>
-            <input type="text" name="consignee" id="consignee" placeholder="Consigne" required>
-            <input type="text" id="shipper" name="shipper" placeholder="Shipper" required>
-          <div class="containerNegara">
-            <input type="checkbox" class="toggle" id="ntujuansama" title="Negara Tujuan Re Ekspor = Negara Shipper" checked>
-            <label for="ntujuansama">Negara Tujuan Sama</label>
-            <script>
-              const alasan = document.getElementById('alasan');
-              const input = document.getElementById('ntujuan');
-              const checkbox = document.getElementById('ntujuansama');
-
-              checkbox.addEventListener('change', function() {
-                if (!this.checked) {
-                  alasan.style.gridColumn = "1 / 2";
-                  input.style.display = 'block';
-                  input.style.gridColumn = "2 / 3";
-                } else {
-                  input.style.display = 'none';
-                  alasan.style.gridColumn = "1 / 3";
                 }
-              });
-            </script>
-            <input class="autocomplete" type="text" id="nshipper" name="nshipper" placeholder="Negara Shipper" required>
+              </script>
+            <input type="date" name="tglbc11" id="tglbc11" required>
+            <div class="containerAwb">
+              <input type="text" class="hawb" name="hawb" id="hawb" placeholder="HAWB" title="Click to display Taggal HAWB" required>
+              <input type="text" class="mawb" name="mawb" id="mawb" placeholder="MAWB" required>
+              <input type="date" class="tglhawb" name="tglhawb" id="tglhawb" title="Tanggal HAWB" style="display: none; text-align: left;" required>
+              <input type="date" class="tglmawb" name="tglmawb" id="tglmawb" title="Tanggal MAWB" style="display: none; text-align: right;" required>
+              <input type="text" name="consignee" id="consignee" placeholder="Consigne" style="text-transform: capitalize;" required>
+              <input type="text" id="shipper" name="shipper" placeholder="Shipper" style="text-transform: capitalize;" required>
+            <div class="containerNegara">
+              <input type="checkbox" class="toggle" id="ntujuansama" title="Negara Tujuan Re Ekspor = Negara Shipper" checked>
+              <label for="ntujuansama">Negara Tujuan Sama</label>
+              <input class="autocomplete" type="text" id="nshipper" name="nshipper" placeholder="Negara Shipper" required>
               <script>
-                  function autocomplete(inp, arr) {
-                    /*the autocomplete function takes two arguments,
-                    the text field element and an array of possible autocompleted values:*/
-                    var currentFocus;
-                    /*execute a function when someone writes in the text field:*/
-                    inp.addEventListener("input", function(e) {
-                      var a, b, i, val = this.value;
-                      /*close any already open lists of autocompleted values*/
-                      closeAllLists();
-                      if (!val) { return false;}
-                      currentFocus = -1;
-                      /*create a DIV element that will contain the items (values):*/
-                      a = document.createElement("DIV");
-                      a.setAttribute("id", this.id + "autocomplete-list");
-                      a.setAttribute("class", "autocomplete-items");
-                      /*append the DIV element as a child of the autocomplete container:*/
-                      this.parentNode.appendChild(a);
-                      /*for each item in the array...*/
-                      for (i = 0; i < arr.length; i++) {
-                      /*check if the item starts with the same letters as the text field value:*/
-                      if (arr[i].substr(0, val.length).toUpperCase() == val.toUpperCase()) {
-                        /*create a DIV element for each matching element:*/
-                        b = document.createElement("DIV");
-                        /*make the matching letters bold:*/
-                        b.innerHTML = "<strong>" + arr[i].substr(0, val.length) + "</strong>";
-                        b.innerHTML += arr[i].substr(val.length);
-                        /*insert a input field that will hold the current array item's value:*/
-                        b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
-                        /*execute a function when someone clicks on the item value (DIV element):*/
-                        b.addEventListener("click", function(e) {
-                          /*insert the value for the autocomplete text field:*/
-                          inp.value = this.getElementsByTagName("input")[0].value;
-                          /*close the list of autocompleted values,
-                          (or any other open lists of autocompleted values:*/
-                          closeAllLists();
-                        });
-                        a.appendChild(b);
-                      }
-                      }
-                    });
-                    /*execute a function presses a key on the keyboard:*/
-                    inp.addEventListener("keydown", function(e) {
-                      var x = document.getElementById(this.id + "autocomplete-list");
-                      if (x) x = x.getElementsByTagName("div");
-                      if (e.keyCode == 40) {
-                      /*If the arrow DOWN key is pressed,
-                      increase the currentFocus variable:*/
-                      currentFocus++;
-                      /*and and make the current item more visible:*/
-                      addActive(x);
-                      } else if (e.keyCode == 38) { //up
-                      /*If the arrow UP key is pressed,
-                      decrease the currentFocus variable:*/
-                      currentFocus--;
-                      /*and and make the current item more visible:*/
-                      addActive(x);
-                      } else if (e.keyCode == 13) {
-                      /*If the ENTER key is pressed, prevent the form from being submitted,*/
-                      e.preventDefault();
-                      if (currentFocus > -1) {
-                        /*and simulate a click on the "active" item:*/
-                        if (x) x[currentFocus].click();
-                      }
-                      }
-                    });
-                    function addActive(x) {
-                    /*a function to classify an item as "active":*/
-                    if (!x) return false;
-                    /*start by removing the "active" class on all items:*/
-                    removeActive(x);
-                    if (currentFocus >= x.length) currentFocus = 0;
-                    if (currentFocus < 0) currentFocus = (x.length - 1);
-                    /*add class "autocomplete-active":*/
-                    x[currentFocus].classList.add("autocomplete-active");
-                    }
-                    function removeActive(x) {
-                    /*a function to remove the "active" class from all autocomplete items:*/
-                    for (var i = 0; i < x.length; i++) {
-                      x[i].classList.remove("autocomplete-active");
-                    }
-                    }
-                    function closeAllLists(elmnt) {
-                    /*close all autocomplete lists in the document,
-                    except the one passed as an argument:*/
-                    var x = document.getElementsByClassName("autocomplete-items");
-                    for (var i = 0; i < x.length; i++) {
-                      if (elmnt != x[i] && elmnt != inp) {
-                      x[i].parentNode.removeChild(x[i]);
-                      }
-                    }
-                    }
-                    /*execute a function when someone clicks in the document:*/
-                    document.addEventListener("click", function (e) {
-                      closeAllLists(e.target);
-                    });
-                  }
-                  
-                  /*An array containing all the country names in the world:*/
-                  var countries = ["Afganistan","Afrika Selatan","Afrika Tengah, Republik","Åland, Kepulauan","Albania","Aljazair","Amerika Serikat","Andorra","Angola","Anguilla","Antarktika","Antigua dan Barbuda","Antillen Belanda","Arab Saudi","Argentina","Armenia","Aruba","Australia","Austria","Azerbaijan","Bahama","Bahrain","Bangladesh","Barbados","Belanda","Belarus","Belgia","Belize","Benin","Bermuda","Bhutan","Bolivia","Bosnia dan Herzegovina","Botswana","Bouvet, Pulau","Brasil","Britania Raya","Brunei","Bulgaria","Burkina Faso","Burundi","Cayman, Kepulauan","Chad","Ceko, Republik","Chili","Cocos (Keeling), Kepulauan","Cook, Kepulauan","Denmark","Djibouti","Dominika","Dominika, Republik","Ekuador","El Salvador","Eritrea","Estonia","Eswatini","Ethiopia","Falkland, Kepulauan","Faroe, Kepulauan","Fiji","Filipina","Finlandia","Gabon","Gambia","Georgia","Georgia Selatan dan Kepulauan Sandwich Selatan","Ghana","Gibraltar","Greenland","Grenada","Guadeloupe","Guam","Guatemala","Guernsey","Guinea","Guinea-Bissau","Guinea Khatulistiwa","Guyana","Guyana Prancis","Haiti","Heard dan Kepulauan McDonald, Pulau","Honduras","Hong Kong","Hongaria","Islandia","India","Indonesia","Irak","Iran","Irlandia, Republik","Israel","Italia","Jamaika","Jepang","Jerman","Jersey","Kaledonia Baru","Kamboja","Kamerun","Kanada","Kazakhstan","Kenya","Kiribati","Kirgizstan","Kolombia","Komoro","Kongo, Republik","Kongo, Republik Demokratik","Korea, Republik","Korea, Republik Rakyat Demokratik","Kosta Rika","Kroasia","Kuba","Kuwait","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lituania","Luksemburg","Makau","Makedonia, Republik","Madagaskar","Malawi","Malaysia","Maladewa","Mali","Malta","Man, Pulau","Mariana Utara, Kepulauan","Maroko","Marshall, Kepulauan","Martinik","Mauritania","Mauritius","Mayotte","Meksiko","Mikronesia, Federasi","Moldova","Mesir","Monako","Kepulauan Terluar Kecil Amerika Serikat","Mongolia","Montenegro","Montserrat","Mozambik","Myanmar","Namibia","Nauru","Natal, Pulau","Nepal","Nikaragua","Niger","Nigeria","Niue","Norfolk, Pulau","Norwegia","Oman","Pakistan","Palau","Palestina","Panama","Pantai Gading","Papua Nugini","Paraguay","Prancis","Prancis Selatan, Teritori","Peru","Pitcairn, Kepulauan","Polandia","Polinesia Prancis","Portugal","Puerto Rico","Qatar","Réunion","Rumania","Rusia","Rwanda","Sahara Barat","Saint-Barthélemy","Saint Helena, Ascension, dan Tristan da Cunha","Saint Kitts dan Nevis","Saint Lucia","Saint Martin (Prancis)","Saint Pierre dan Miquelon","Saint Vincent dan Grenadines","Samoa","Samoa Amerika","Samudra Hindia Britania, Teritori","San Marino","Sao Tome dan Principe","Selandia Baru","Senegal","Serbia","Seychelles","Sierra Leone","Singapura","Siprus","Slovenia","Slowakia","Solomon, Kepulauan","Somalia","Spanyol","Sri Lanka","Sudan","Suriah","Suriname","Svalbard dan Jan Mayen","Swedia","Swiss","Taiwan","Tajikistan","Tanjung Verde","Tanzania","Thailand","Timor Leste","Tiongkok, Republik Rakyat","Togo","Tokelau","Tonga","Trinidad dan Tobago","Tunisia","Turki","Turkmenistan","Turks dan Caicos, Kepulauan","Tuvalu","Uganda","Ukraina","Uni Emirat Arab","Uruguay","Uzbekistan","Vanuatu","Vatikan","Venezuela","Vietnam","Virgin Amerika Serikat, Kepulauan","Virgin Britania Raya, Kepulauan","Wallis dan Futuna","Yaman","Yordania","Yunani","Zambia","Zimbabwe",];
-                  
-                  /*initiate the autocomplete function on the "myInput" element, and pass along the countries array as possible autocomplete values:*/
-                  autocomplete(document.getElementById("nshipper"), countries);
-                </script>
-          </div>
-          </div>
-        </div>
-        <br>
-        <span style="font-size: 20px;">Detil Barang:</span>
-        <div class="grid-barang">
-          <div class="containerBarang">
-            <input type="number" size="10" min="1" max="999" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 3)" name="jumlah" id="jumlah" style="overflow-y: scroll; text-align: right;" placeholder="Jumlah" required>
-            <div style="margin-top: 2px;">
-              <input type="radio" id="ct" name="satuan" value="Carton" required>Carton</label>
-              <input type="radio" id="pk" name="satuan" value="Package" required>Package</label>
-            </div>
-            <div class="containerBerat">
-              <input type="text" id="berat" name="berat" placeholder="Berat" style="border: none; text-align: right;" required>
-                <script>
-                    var inputField = document.getElementById("berat");
-                    inputField.addEventListener("input", function() {
-                      this.value = this.value.replace(/[^0-9,.]/g, ''); // allow comma and dot
-                      this.value = this.value.replace(".", ","); // replace dot with comma
-                      var decimalIndex = this.value.indexOf(",");
-                      if (decimalIndex !== -1) {
-                        var decimalPart = this.value.slice(decimalIndex + 1);
-                        decimalPart = decimalPart.replace(/[^0-9]/g, ''); // only allow digits
-                        decimalPart = decimalPart.slice(0, 2); // limit to 2 digits after comma
-                        this.value = this.value.slice(0, decimalIndex + 1) + decimalPart; // replace decimal part
-                        var integerPart = this.value.slice(0, decimalIndex);
-                        integerPart = integerPart.slice(0, 4); // limit to 3 digits before comma
-                        this.value = integerPart + "," + decimalPart; // replace integer part
-                      } else if (this.value.length > 3) {
-                        this.value = this.value.slice(0, 4); // limit to 3 digits
-                      } else if (this.value.endsWith(",")) {
-                        this.value += "00"; // automatically add .00 if ends with comma
-                      } else if (this.value.endsWith(".")) {
-                        this.value = this.value.slice(0, -1) + ",00"; // replace dot with comma and add .00
-                      }
-                    });
-                </script>
-              <span style="margin-top: 3px;">kg</span>
-            </div>
-          </div>
-          <div class="containerUraian">
-            <input type="text" id="uraian" name="uraian" placeholder="Uraian Barang" required>
-            <input type="text" id="kodehs" name="kodehs" placeholder="Kode HS" required>
-              <script>
-                var inputField = document.getElementById("kodehs");
-                inputField.addEventListener("input", function() {
-                  this.value = this.value.replace(/[^0-9]/g, '');
-                  if (this.value.length > 8) {
-                    this.value = this.value.slice(0, 8);
+                var countries = [
+                  { name: "Afghanistan", code: "AF" },
+                  { name: "Albania", code: "AL" },
+                  { name: "Antarctica", code: "AQ" },
+                  { name: "Algeria", code: "DZ" },
+                  { name: "American Samoa", code: "AS" },
+                  { name: "Andorra", code: "AD" },
+                  { name: "Angola", code: "AO" },
+                  { name: "Antigua and Barbuda", code: "AG" },
+                  { name: "Azerbaijan", code: "AZ" },
+                  { name: "Argentina", code: "AR" },
+                  { name: "Australia", code: "AU" },
+                  { name: "Austria", code: "AT" },
+                  { name: "Bahamas", code: "BS" },
+                  { name: "Bahrain", code: "BH" },
+                  { name: "Bangladesh", code: "BD" },
+                  { name: "Armenia", code: "AM" },
+                  { name: "Barbados", code: "BB" },
+                  { name: "Belgium", code: "BE" },
+                  { name: "Bermuda", code: "BM" },
+                  { name: "Bhutan", code: "BT" },
+                  { name: "Bolivia", code: "BO" },
+                  { name: "Bosnia and Herzegovina", code: "BA" },
+                  { name: "Botswana", code: "BW" },
+                  { name: "Bouvet Island", code: "BV" },
+                  { name: "Brazil", code: "BR" },
+                  { name: "Belize", code: "BZ" },
+                  { name: "British Indian Ocean Territory (the)", code: "IO" },
+                  { name: "Solomon Islands", code: "SB" },
+                  { name: "Virgin Islands", code: "VG" },
+                  { name: "Brunei Darussalam", code: "BN" },
+                  { name: "Bulgaria", code: "BG" },
+                  { name: "Myanmar", code: "MM" },
+                  { name: "Burundi", code: "BI" },
+                  { name: "Belarus", code: "BY" },
+                  { name: "Cambodia", code: "KH" },
+                  { name: "Cameroon", code: "CM" },
+                  { name: "Canada", code: "CA" },
+                  { name: "Cabo Verde", code: "CV" },
+                  { name: "Cayman Islands", code: "KY" },
+                  { name: "Central African Republic", code: "CF" },
+                  { name: "Sri Lanka", code: "LK" },
+                  { name: "Chad", code: "TD" },
+                  { name: "Chile", code: "CL" },
+                  { name: "China", code: "CN" },
+                  { name: "Taiwan", code: "TW" },
+                  { name: "Christmas Island", code: "CX" },
+                  { name: "Cocos (Keeling) Islands", code: "CC" },
+                  { name: "Colombia", code: "CO" },
+                  { name: "Comoros", code: "KM" },
+                  { name: "Mayotte", code: "YT" },
+                  { name: "Congo", code: "CG" },
+                  { name: "Congo", code: "CD" },
+                  { name: "Cook Islands", code: "CK" },
+                  { name: "Costa Rica", code: "CR" },
+                  { name: "Croatia", code: "HR" },
+                  { name: "Cuba", code: "CU" },
+                  { name: "Cyprus", code: "CY" },
+                  { name: "Czechia", code: "CZ" },
+                  { name: "Benin", code: "BJ" },
+                  { name: "Denmark", code: "DK" },
+                  { name: "Dominica", code: "DM" },
+                  { name: "Dominican Republic", code: "DO" },
+                  { name: "Ecuador", code: "EC" },
+                  { name: "El Salvador", code: "SV" },
+                  { name: "Equatorial Guinea", code: "GQ" },
+                  { name: "Ethiopia", code: "ET" },
+                  { name: "Eritrea", code: "ER" },
+                  { name: "Estonia", code: "EE" },
+                  { name: "Faroe Islands (the)", code: "FO" },
+                  { name: "Falkland Islands", code: "FK" },
+                  { name: "South Georgia and the South Sandwich Islands", code: "GS" },
+                  { name: "Fiji", code: "FJ" },
+                  { name: "Finland", code: "FI" },
+                  { name: "Åland Islands", code: "AX" },
+                  { name: "France", code: "FR" },
+                  { name: "French Guiana", code: "GF" },
+                  { name: "French Polynesia", code: "PF" },
+                  { name: "French Southern Territories", code: "TF" },
+                  { name: "Djibouti", code: "DJ" },
+                  { name: "Gabon", code: "GA" },
+                  { name: "Georgia", code: "GE" },
+                  { name: "Gambia", code: "GM" },
+                  { name: "Palestine, State of", code: "PS" },
+                  { name: "Germany", code: "DE" },
+                  { name: "Ghana", code: "GH" },
+                  { name: "Gibraltar", code: "GI" },
+                  { name: "Kiribati", code: "KI" },
+                  { name: "Greece", code: "GR" },
+                  { name: "Greenland", code: "GL" },
+                  { name: "Grenada", code: "GD" },
+                  { name: "Guadeloupe", code: "GP" },
+                  { name: "Guam", code: "GU" },
+                  { name: "Guatemala", code: "GT" },
+                  { name: "Guinea", code: "GN" },
+                  { name: "Guyana", code: "GY" },
+                  { name: "Haiti", code: "HT" },
+                  { name: "Heard Island and McDonald Islands", code: "HM" },
+                  { name: "Holy See", code: "VA" },
+                  { name: "Honduras", code: "HN" },
+                  { name: "Hong Kong", code: "HK" },
+                  { name: "Hungary", code: "HU" },
+                  { name: "Iceland", code: "IS" },
+                  { name: "India", code: "IN" },
+                  { name: "Indonesia", code: "ID" },
+                  { name: "Iran", code: "IR" },
+                  { name: "Iraq", code: "IQ" },
+                  { name: "Ireland", code: "IE" },
+                  { name: "Israel", code: "IL" },
+                  { name: "Italy", code: "IT" },
+                  { name: "Côte d'Ivoire", code: "CI" },
+                  { name: "Jamaica", code: "JM" },
+                  { name: "Japan", code: "JP" },
+                  { name: "Kazakhstan", code: "KZ" },
+                  { name: "Jordan", code: "JO" },
+                  { name: "Kenya", code: "KE" },
+                  { name: "Korea", code: "KR" },
+                  { name: "Kuwait", code: "KW" },
+                  { name: "Kyrgyzstan", code: "KG" },
+                  { name: "Lao People's Democratic Republic", code: "LA" },
+                  { name: "Lebanon", code: "LB" },
+                  { name: "Lesotho", code: "LS" },
+                  { name: "Latvia", code: "LV" },
+                  { name: "Liberia", code: "LR" },
+                  { name: "Libya", code: "LY" },
+                  { name: "Liechtenstein", code: "LI" },
+                  { name: "Lithuania", code: "LT" },
+                  { name: "Luxembourg", code: "LU" },
+                  { name: "Macao", code: "MO" },
+                  { name: "Madagascar", code: "MG" },
+                  { name: "Malawi", code: "MW" },
+                  { name: "Malaysia", code: "MY" },
+                  { name: "Maldives", code: "MV" },
+                  { name: "Mali", code: "ML" },
+                  { name: "Malta", code: "MT" },
+                  { name: "Martinique", code: "MQ" },
+                  { name: "Mauritania", code: "MR" },
+                  { name: "Mauritius", code: "MU" },
+                  { name: "Mexico", code: "MX" },
+                  { name: "Monaco", code: "MC" },
+                  { name: "Mongolia", code: "MN" },
+                  { name: "Moldova", code: "MD" },
+                  { name: "Montenegro", code: "ME" },
+                  { name: "Montserrat", code: "MS" },
+                  { name: "Morocco", code: "MA" },
+                  { name: "Mozambique", code: "MZ" },
+                  { name: "Oman", code: "OM" },
+                  { name: "Namibia", code: "NA" },
+                  { name: "Nauru", code: "NR" },
+                  { name: "Nepal", code: "NP" },
+                  { name: "Netherlands", code: "NL" },
+                  { name: "Curaçao", code: "CW" },
+                  { name: "Aruba", code: "AW" },
+                  { name: "Sint Maarten", code: "SX" },
+                  { name: "Bonaire, Sint Eustatius and Saba", code: "BQ" },
+                  { name: "New Caledonia", code: "NC" },
+                  { name: "Vanuatu", code: "VU" },
+                  { name: "New Zealand", code: "NZ" },
+                  { name: "Nicaragua", code: "NI" },
+                  { name: "Nigeria", code: "NG" },
+                  { name: "Niue", code: "NU" },
+                  { name: "Norfolk Island", code: "NF" },
+                  { name: "Norway", code: "NO" },
+                  { name: "Northern Mariana Islands", code: "MP" },
+                  { name: "United States Minor Outlying Islands (the)", code: "UM" },
+                  { name: "Micronesia", code: "FM" },
+                  { name: "Marshall Islands", code: "MH" },
+                  { name: "Palau", code: "PW" },
+                  { name: "Pakistan", code: "PK" },
+                  { name: "Panama", code: "PA" },
+                  { name: "Papua New Guinea", code: "PG" },
+                  { name: "Paraguay", code: "PY" },
+                  { name: "Peru", code: "PE" },
+                  { name: "Philippines", code: "PH" },
+                  { name: "Pitcairn", code: "PN" },
+                  { name: "Poland", code: "PL" },
+                  { name: "Portugal", code: "PT" },
+                  { name: "Guinea-Bissau", code: "GW" },
+                  { name: "Timor-Leste", code: "TL" },
+                  { name: "Puerto Rico", code: "PR" },
+                  { name: "Qatar", code: "QA" },
+                  { name: "Réunion", code: "RE" },
+                  { name: "Romania", code: "RO" },
+                  { name: "Russian Federation", code: "RU" },
+                  { name: "Rwanda", code: "RW" },
+                  { name: "Saint Barthélemy", code: "BL" },
+                  { name: "Saint Helena, Ascension and Tristan da Cunha", code: "SH" },
+                  { name: "Saint Kitts and Nevis", code: "KN" },
+                  { name: "Anguilla", code: "AI" },
+                  { name: "Saint Lucia", code: "LC" },
+                  { name: "Saint Martin", code: "MF" },
+                  { name: "Saint Pierre and Miquelon", code: "PM" },
+                  { name: "Saint Vincent and the Grenadines", code: "VC" },
+                  { name: "San Marino", code: "SM" },
+                  { name: "Sao Tome and Principe", code: "ST" },
+                  { name: "Saudi Arabia", code: "SA" },
+                  { name: "Senegal", code: "SN" },
+                  { name: "Serbia", code: "RS" },
+                  { name: "Seychelles", code: "SC" },
+                  { name: "Sierra Leone", code: "SL" },
+                  { name: "Singapore", code: "SG" },
+                  { name: "Slovakia", code: "SK" },
+                  { name: "Viet Nam", code: "VN" },
+                  { name: "Slovenia", code: "SI" },
+                  { name: "Somalia", code: "SO" },
+                  { name: "South Africa", code: "ZA" },
+                  { name: "Zimbabwe", code: "ZW" },
+                  { name: "Spain", code: "ES" },
+                  { name: "South Sudan", code: "SS" },
+                  { name: "Sudan", code: "SD" },
+                  { name: "Western Sahara", code: "EH" },
+                  { name: "Suriname", code: "SR" },
+                  { name: "Svalbard and Jan Mayen", code: "SJ" },
+                  { name: "Eswatini", code: "SZ" },
+                  { name: "Sweden", code: "SE" },
+                  { name: "Switzerland", code: "CH" },
+                  { name: "Syrian Arab Republic", code: "SY" },
+                  { name: "Tajikistan", code: "TJ" },
+                  { name: "Thailand", code: "TH" },
+                  { name: "Togo", code: "TG" },
+                  { name: "Tokelau", code: "TK" },
+                  { name: "Tonga", code: "TO" },
+                  { name: "Trinidad and Tobago", code: "TT" },
+                  { name: "United Arab Emirates", code: "AE" },
+                  { name: "Tunisia", code: "TN" },
+                  { name: "Turkey", code: "TR" },
+                  { name: "Turkmenistan", code: "TM" },
+                  { name: "Turks and Caicos Islands", code: "TC" },
+                  { name: "Tuvalu", code: "TV" },
+                  { name: "Uganda", code: "UG" },
+                  { name: "Ukraine", code: "UA" },
+                  { name: "Republic of North Macedonia", code: "MK" },
+                  { name: "Egypt", code: "EG" },
+                  { name: "Great Britain", code: "GB" },
+                  { name: "Guernsey", code: "GG" },
+                  { name: "Jersey", code: "JE" },
+                  { name: "Isle of Man", code: "IM" },
+                  { name: "Tanzania, United Republic of", code: "TZ" },
+                  { name: "United Kingdom", code: "UK" },
+                  { name: "United States", code: "US" },
+                  { name: "Virgin Islands", code: "VI" },
+                  { name: "Burkina Faso", code: "BF" },
+                  { name: "Uruguay", code: "UY" },
+                  { name: "Uzbekistan", code: "UZ" },
+                  { name: "Venezuela", code: "VE" },
+                  { name: "Wallis and Futuna", code: "WF" },
+                  { name: "Samoa", code: "WS" },
+                  { name: "Yemen", code: "YE" },
+                  { name: "Zambia", code: "ZM" },
+                ];
+
+                var inputField = document.getElementById("nshipper");
+
+                inputField.addEventListener("blur", function() {
+                  var inputText = this.value;
+                  var matchedCountry = countries.find(function(country) {
+                    return country.code.toLowerCase() === inputText.toLowerCase();
+                  });
+
+                  if (matchedCountry) {
+                    this.value = matchedCountry.name;
                   }
                 });
-                inputField.addEventListener("blur", function() {
-                  var paddedValue = String(this.value).padStart(8, "0");
-                  var formattedValue = paddedValue.slice(0, 4) + "." + paddedValue.slice(4, 6) + "." + paddedValue.slice(6, 8);
-                  if (paddedValue === "00000000" || paddedValue === "") {
-                      this.value = "";
-                    } else {
-                      this.value = formattedValue;
+              </script>
+            </div>
+            </div>
+          </div>
+          <br>
+
+          <span style="font-size: 20px;">Detil Barang:</span>
+          <div class="grid-barang">
+            <div class="containerBarang">
+              <input type="number" size="10" min="1" max="999" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 3)" name="jumlah" id="jumlah" style="overflow-y: scroll; text-align: right;" placeholder="Jumlah" required>
+              <div style="margin-top: 2px;">
+                <input type="radio" id="ct" name="satuan" value="Carton" required>Carton</label>
+                <input type="radio" id="pk" name="satuan" value="Package" required>Package</label>
+              </div>
+              <div class="containerBerat">
+                <input type="text" id="berat" name="berat" placeholder="Berat" style="border: none; outline: none; text-align: right;" required>
+                  <script>// set format for Berat
+                      var inputField = document.getElementById("berat");
+                      inputField.addEventListener("input", function() {
+                        this.value = this.value.replace(/[^0-9,.]/g, ''); // allow comma and dot
+                        this.value = this.value.replace(".", ","); // replace dot with comma
+                        var decimalIndex = this.value.indexOf(",");
+                        if (decimalIndex !== -1) {
+                          var decimalPart = this.value.slice(decimalIndex + 1);
+                          decimalPart = decimalPart.replace(/[^0-9]/g, ''); // only allow digits
+                          decimalPart = decimalPart.slice(0, 2); // limit to 2 digits after comma
+                          this.value = this.value.slice(0, decimalIndex + 1) + decimalPart; // replace decimal part
+                          var integerPart = this.value.slice(0, decimalIndex);
+                          integerPart = integerPart.slice(0, 4); // limit to 3 digits before comma
+                          this.value = integerPart + "," + decimalPart; // replace integer part
+                        } else if (this.value.length > 3) {
+                          this.value = this.value.slice(0, 4); // limit to 3 digits
+                        } else if (this.value.endsWith(",")) {
+                          this.value += "00"; // automatically add .00 if ends with comma
+                        } else if (this.value.endsWith(".")) {
+                          this.value = this.value.slice(0, -1) + ",00"; // replace dot with comma and add .00
+                        }
+                      });
+                      inputField.addEventListener("blur", function() {
+                          if (this.value === "0") {
+                              this.value = "";
+                          }
+                      });
+                  </script>
+                <span style="margin-top: 3px;">kg</span>
+              </div>
+            </div>
+            <div class="containerUraian">
+              <textarea name="uraian" id="uraian" placeholder="Uraian Barang" title="Sesuai Ceisa Manifest" required></textarea>
+              <input type="text" id="kodehs" name="kodehs" placeholder="Kode HS" style="display: none;">
+              <script> // KODE HS FORMATTING
+                const kodehsInput = document.getElementById("kodehs");
+                kodehsInput.addEventListener("input", () => {
+                  let kodehsValue = kodehsInput.value.replace(/\D/g, ""); // only allow digits
+                  kodehsValue = kodehsValue.slice(0, 8); // truncate to 8 digits if more than 8 digits
+                  if (kodehsInput === document.activeElement) {
+                    // When input field is in focus, remove separators
+                    kodehsInput.value = kodehsValue;
+                  } else {
+                    // When input field is not in focus, add separators and zero padding
+                    kodehsInput.value = kodehsValue.padEnd(8, "0").replace(/^(\d{4})(\d{2})(\d{2})$/, "$1.$2.$3");
+                  }
+                });
+
+                kodehsInput.addEventListener("focus", () => {
+                  kodehsInput.value = kodehsInput.value.replace(/\./g, "");
+                });
+
+                kodehsInput.addEventListener("blur", () => {
+                  let kodehsValue = kodehsInput.value.replace(/\D/g, ""); // only allow digits
+                  if (kodehsValue.length >= 4 && kodehsValue.length <= 7) {
+                    // Add zero padding to complete 8 digits if value is between 4-7 digits
+                    kodehsValue = kodehsValue.padEnd(8, "0");
+                  } else if (kodehsValue.length < 4) {
+                    // Clear value if it is less than 4 digits
+                    kodehsValue = "";
+                  }
+                  kodehsInput.value = kodehsValue.replace(/^(\d{4})(\d{2})(\d{2})$/, "$1.$2.$3");
+                });
+                </script>
+            </div>
+          </div>
+          <br>
+
+          <div class="grid-lain" style="display: none;">
+            <span style="font-size: 20px;">Detil Lartas:</span>
+            <div class="containerSpbl">
+              <input type="text" id="spbl" name="spbl" pattern="\d{6}" placeholder="Nomor SPBL" disabled>
+                <script>// set format for Nomor SPBL
+                  var inputField = document.getElementById("spbl");
+                  inputField.addEventListener("input", function() {
+                    this.value = this.value.replace(/[^0-9]/g, '');
+                    if (this.value.length > 6) {
+                      this.value = this.value.slice(0, 6);
                     }
                   });
-              </script>
-          </div>
-          <div class="containerFungsi">
-            <input type="text" id="fungsi" name="fungsi" placeholder="Fungsi Barang" disabled>
-            <input type="checkbox" class="toggle" id="toggleFungsi" onchange="resetFungsi()">
-              <script>
-                  function toggleFungsi(disabled) {
-                      document.getElementById("fungsi").disabled = disabled;
-                    };
 
-                    document.getElementById("toggleFungsi").addEventListener("change", function() {
-                      if (this.checked) {
-                        toggleFungsi(false);
-                      } else {
-                        toggleFungsi(true);
-                      }
-                    });
-                  function resetFungsi() {
-                    document.getElementById("fungsi").value ="";
-                  };
-
-
-                  const notRequiredFungsi = document.getElementById('toggleFungsi');
-                  const fungsi = document.getElementById('fungsi');
-
-                  notRequiredFungsi.addEventListener('change', () => {
-                  if (notRequiredFungsi.checked) {
-                    fungsi.setAttribute('required', '');
-                  } else {
-                    fungsi.removeAttribute('required');
-                  }
-                });
-              </script>
+                  inputField.addEventListener("blur", function() {
+                    var paddedValue = String(this.value).padStart(6, "0");
+                    if (paddedValue === "000000" || paddedValue === "") {
+                      this.value = "";
+                    } else {
+                      this.value = paddedValue;
+                    }
+                  });
+                </script>
+              <input type="date" id="tglspbl" name="tglspbl" disabled>
+            </div>
+              <textarea class="fullgridrow" name="ketentuan" id="ketentuan" placeholder="Peraturan Terkait" title="Sesuai INSW / SPBL" ></textarea>
           </div>
         </div>
         <br>
-        <div class="grid-lain" style="display: none;">
-          <span style="font-size: 20px;">Detil Lartas:</span>
-          <div class="containerSpbl">
-            <input type="text" id="spbl" name="spbl" pattern="\d{6}" placeholder="Nomor SPBL" disabled required>
-              <script>
-                var inputField = document.getElementById("spbl");
-                inputField.addEventListener("input", function() {
-                  this.value = this.value.replace(/[^0-9]/g, '');
-                  if (this.value.length > 6) {
-                    this.value = this.value.slice(0, 6);
-                  }
-                });
-
-                inputField.addEventListener("blur", function() {
-                  var paddedValue = String(this.value).padStart(6, "0");
-                  if (paddedValue === "000000" || paddedValue === "") {
-                    this.value = "";
-                  } else {
-                    this.value = paddedValue;
-                  }
-                });
-              </script>
-            <input type="date" id="tglspbl" name="tglspbl" disabled required>
-            <input type="checkbox" class="toggle" id="nonspbl" onchange="resetSpbl()">
-              <script>
-                  function nonspbl(disabled) {
-                      document.getElementById("spbl").disabled = disabled;
-                      document.getElementById("tglspbl").disabled = disabled;
-                    }
-
-                    document.getElementById("nonspbl").addEventListener("change", function() {
-                      if (this.checked) {
-                        nonspbl(false);
-                      } else {
-                        nonspbl(true);
-                      }
-                    });
-                  function resetSpbl() {
-                    document.getElementById("spbl").value ="";
-                    document.getElementById("tglspbl").value ="";
-                  };
-
-
-                  const notRequiredSpbl = document.getElementById('nonspbl');
-                  const spbl = document.getElementById('spbl');
-                  const tglspbl = document.getElementById('tglspbl');
-
-                  notRequiredSpbl.addEventListener('change', () => {
-                  if (notRequiredSpbl.checked) {
-                    spbl.setAttribute('required', '');
-                    tglspbl.setAttribute('required', '');
-                  } else {
-                    spbl.removeAttribute('required');
-                    tglspbl.removeAttribute('required');
-                  }
-                });
-              </script>
+        <div class="containerButton">
+          <button id="uploadButton" class="fullgridrow" style="display: none; outline: none;">Upload PDF</button>
+          <div id="fileInputContainer" style="display: none;">
+              <input type="file" id="pdfFile" accept=".pdf">
           </div>
-          <input type="text" id="dasarHukum" name="dasarHukum" placeholder="Dasar Hukum Lartas" required>
+          <button type="reset" value="reset" id="resetButton" style="outline: none;">Reset</button>
+          <button type="button" value="next" id="nextButton" style="outline: none;">Next</button>
+          <button type="button" value="back" id="backButton" style="display: none; outline: none;">Back</button>
+          <button type="submit" value="submit" id="submitButton" onmouseover="updateField()" style="display: none;  outline: none;">Submit</button>
         </div>
-
-        <div class="button">
-          <button type="reset" value="reset" style="outline: none;">Reset</button>
-          <button type="submit" value="submit" onmouseover="updateField()" style="outline: none;">Submit</button>
-        </div>
-        <script>//script to update field
-          function updateField() {
-            var tglmawb = document.getElementById("tglmawb");
-            var tglhawb = document.getElementById("tglhawb");
-            var nshipper = document.getElementById("nshipper");
-            var ntujuansama = document.getElementById("ntujuansama");
-            var ntujuan = document.getElementById("ntujuan");
-
-            if (tglhawb.value === "") { // only update if tglhawb value is empty
-              tglhawb.value = tglmawb.value;
-            }
-
-            if (ntujuansama.checked) {
-              ntujuan.value = nshipper.value;
-            }
-          }
-        </script>
-
-        <script>//script to display Detil Lartas
-          const select = document.getElementById("alasan");
-          const gridlain = document.querySelector(".grid-lain");
-          const button = document.querySelector(".button");
-
-          select.addEventListener("change", function() {
-            if (select.value === "Barang Lartas") {
-              gridlain.style.display = "block";
-              button.style.marginTop = '30px';
-              
-            } else {
-              gridlain.style.display = "none";
-              button.style.marginTop = '0px';
-            }
-          });
-        </script>
-        
-        <script>//to prevent picking date beyond today
+        <button type="button" id="mmButton" class="fullgridrow" onclick="performMailMerge()" style="display: none; outline: none;">Perform Mail Merge</button>
+       <script>//to prevent picking date beyond today
           var today = new Date().toISOString().split('T')[0];
           var dateInputs = document.querySelectorAll("input[type='date']");
 
@@ -759,11 +757,502 @@
             });
           });
         </script>
+        <script>// dinamic textarea
+          const tx = document.getElementsByTagName("textarea");
+          for (let i = 0; i < tx.length; i++) {
+            tx[i].setAttribute("style", "height:" + (tx[i].scrollHeight) + "px;overflow-y:hidden;");
+            tx[i].addEventListener("input", OnInput, false);
+          }
+
+          function OnInput() {
+            this.style.height = 0;
+            this.style.height = (this.scrollHeight) + "px";
+          }
+        </script>
+
+        <script>// setting lowercase for PPJK, Consignee, Shipper and Uraian
+        var inputs = document.querySelectorAll("#ppjk, #consignee");
+        inputs.forEach(function(input) {
+          input.addEventListener("input", function() {
+            var value = this.value;
+            // Check if the first two characters are "PT"
+            if (value.substring(0, 2) === "PT") {
+              // Remove a dot after "PT", if it exists
+              value = value.replace(/PT\./, "PT");
+              // Capitalize the first two characters and convert the rest to title case
+              value = "PT" + value.substring(2).toLocaleLowerCase().replace(/(^|\s)\S/g, function(match) {
+                return match.toLocaleUpperCase();
+              });
+            } else {
+              // Convert the string to title case
+              value = value.toLocaleLowerCase().replace(/(^|\s)\S/g, function(match) {
+                return match.toLocaleUpperCase();
+              });
+            }
+            this.value = value;
+          });
+        });
+
+        var inputs = document.querySelectorAll("#shipper");
+        inputs.forEach(function(input) {
+          input.addEventListener("input", function() {
+            this.value = this.value.toLocaleLowerCase().replace(/(^|\s)\S/g, function (match) {
+              return match.toLocaleUpperCase();
+            });
+          });
+        });
+        </script>
       </form>
     </div>
+    <div id="loading-overlay">
+      <div id="loading-spinner"></div>
+      <div id="loading-message">Please wait...</div>
+    </div>
     <script>
+      var checklists = document.getElementById('checklists');
+      var backButton = document.getElementById('backButton');
+      var nextButton = document.getElementById('nextButton');
+      var resetButton = document.getElementById('resetButton');
+      var submitButton = document.getElementById('submitButton');
+      var mmButton = document.getElementById('mmButton');
+      var categoryDropdown = document.getElementById('category');
+      var formInput = document.querySelector('.formInput');
+      var tdkSesuaiPesanan = document.querySelector('.tdkSesuaiPesanan');
+      var salahKirim = document.querySelector('.salahKirim');
+      var rusak = document.querySelector('.rusak');
+      var clSpbl = document.querySelector('.clSpbl');
+      var mawb = document.getElementById("mawb");
+      var hawb = document.getElementById("hawb");
+      var tanggalmaster = document.getElementById("tglmawb");
+      var tanggalhost = document.getElementById("tglhawb");
+      var gridDetilAlasan = document.getElementById('detilAlasan');
+      var showntujuan = document.getElementById('ntujuan');
+      var checkboxNtujuan = document.getElementById('ntujuansama');
+      var kodehs = document.getElementById('kodehs');
+      var gridLartas = document.querySelector('.grid-lain');
+      var ketentuan = document.getElementById('ketentuan');
+      var clSyarat = document.querySelector('.clSyarat');
+      // add more variable
+
+      const uploadButton = document.getElementById('uploadButton');
+      const pdfFileInput = document.getElementById('pdfFile');
+      const pdfTextContainer = document.getElementById('pdfText');
+      const fileInputContainer = document.getElementById('fileInputContainer');
+
+      uploadButton.addEventListener('click', function() {
+          pdfFileInput.click(); // Trigger the file input click event
+      });
+
+      pdfFileInput.addEventListener('change', function(event) {
+          const file = pdfFileInput.files[0];
+          // show the loading overlay
+          document.getElementById("loading-overlay").style.display = "block";
+          mmButton.style.display = "none";
+          uploadButton.style.display = "none";
+
+          if (file) {
+              const fileReader = new FileReader();
+
+              fileReader.onload = async function(event) {
+                  const typedArray = new Uint8Array(event.target.result);
+
+                  // Initialize PDF.js
+                  const pdf = await pdfjsLib.getDocument(typedArray).promise;
+
+                  let extractedInfo = {
+                  };
+
+                  for (let i = 1; i <= pdf.numPages; i++) {
+                      const page = await pdf.getPage(i);
+                      const viewport = page.getViewport({ scale: 1.9 });
+                      const canvas = document.createElement('canvas');
+                      canvas.height = viewport.height;
+                      canvas.width = viewport.width;
+                      const context = canvas.getContext('2d');
+
+                      // Draw the PDF page on the canvas
+                      await page.render({
+                          canvasContext: context,
+                          viewport: viewport,
+                      }).promise;
+
+                      // Get image data from the canvas
+                      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+
+                      const pageText = await page.getTextContent();
+                      const pageTextArray = pageText.items.map(item => item.str);
+                      const pageTextString = pageTextArray.join(' ');
+
+                      // Extract Nomor Surat using regex with optional spaces
+                      const nomorSuratRegex = /S\s*-\s*\d+\s*\/\s*KPU\.3\s*\/\s*KPU\.\d+\s*\/\s*\d{4}/;
+                      const nomorSuratMatch = pageTextString.match(nomorSuratRegex);
+                      if (nomorSuratMatch) {
+                          extractedInfo.nomorSurat = nomorSuratMatch[0];
+                      }
+                      if (nomorSuratMatch) {
+                        const nomorSuratWithoutSpaces = nomorSuratMatch[0].replace(/\s/g, '');
+                        extractedInfo.nomorSurat = nomorSuratWithoutSpaces;
+                      }
+
+                      // Extract Date using a simplified regex pattern
+                        const dateRegex = /\d{1,2}\s[A-Za-z]+\s\d{4}/; // Matches "20 September 2023" format
+                        const dateMatch = pageTextString.match(dateRegex);
+
+                        if (dateMatch) {
+                            extractedInfo.tanggalSurat = dateMatch[0];
+                        }
+
+                      // Extract siapterbang using regex and remove spaces
+                        const siapterbangRegex = /\bM\.(\d+)\s*\/\s*(\d+(?:\s*\d+)*)/;
+                        const siapterbangMatch = pageTextString.match(siapterbangRegex);
+
+                        if (siapterbangMatch) {
+                            const part1 = siapterbangMatch[1]; // First set of digits
+                            const part2 = siapterbangMatch[2].replace(/\s/g, ''); // Remove spaces from the second set of digits
+
+                            // Combine the parts
+                            extractedInfo.siapterbang = `M.${part1}/${part2}`;
+                        }
+
+                        // Decode QR code using jsQR
+                        const code = jsQR(imageData.data, imageData.width, imageData.height);
+                        if (code) {
+                            extractedInfo.barcode = code.data;
+                        }
+                  }
+                  console.log("Extracted Information:", extractedInfo);
+
+                  // Search for siapterbang in the spreadsheet
+                    const siapterbangToSearch = extractedInfo.siapterbang;
+                    google.script.run.withSuccessHandler(function (result) {
+                      if (result.found) {
+                          // Update the spreadsheet
+                          google.script.run.updateSpreadsheet(
+                              siapterbangToSearch,
+                              extractedInfo.nomorSurat,
+                              extractedInfo.tanggalSurat,
+                              extractedInfo.barcode
+                          );
+                          Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            html: `
+                              <span style="font-weight: bold;"><a href="${extractedInfo.barcode}" target="_blank">${extractedInfo.nomorSurat}</a></span> Tanggal <span style="font-weight: bold;"><a href="${extractedInfo.barcode}" target="_blank">${extractedInfo.tanggalSurat}</a></span> telah diinput ke Database dengan Nomor Agenda Siapterbang <span style="font-weight: bold;"><a href="${extractedInfo.barcode}" target="_blank">${siapterbangToSearch}</a></span>`,
+                            });
+                          // Hide the loading overlay
+                          document.getElementById("loading-overlay").style.display = "none";
+                      } else {
+                          // Display error notification with customized message
+                          Swal.fire({
+                              icon: 'error',
+                              title: 'Error!',
+                              html: `<span style="font-weight: bold;">${siapterbangToSearch}</span> tidak ditemukan di Spreadsheet!`,
+                          });
+                          // Hide the loading overlay
+                          document.getElementById("loading-overlay").style.display = "none";
+                      }
+                  }).checkSiapterbangInSpreadsheet(siapterbangToSearch);
+                  
+                };
+
+                fileReader.readAsArrayBuffer(file);
+            }
+        });
+      // to perform mailmerge
+      function performMailMerge() {
+        // Show SweetAlert with input field
+        Swal.fire({
+          title: 'Masukkan Nomor Siap Terbang!',
+          input: 'text',
+          inputAttributes: {
+            autocapitalize: 'off'
+          },
+          inputValidator: (value) => {
+            if (!value) {
+              return 'Wajib diisi cok!'
+            }
+          },
+          showCancelButton: true,
+          confirmButtonText: 'Submit',
+          showLoaderOnConfirm: true,
+          allowOutsideClick: false,
+          preConfirm: (siapterbang) => {
+            // Show the loading overlay
+            document.getElementById("loading-overlay").style.display = "block";
+
+            // Perform the mail merge
+            return google.script.run.withSuccessHandler(function(downloadLinks) {
+              // Hide the loading overlay
+              document.getElementById("loading-overlay").style.display = "none";
+
+              // Construct the success message with clickable links
+              var message = "Download Links:<br>";
+              message += "<a href='" + downloadLinks.downloadLinkNota + "' target='_blank'>Nota Pengantar</a><br>";
+              message += "<a href='" + downloadLinks.downloadLinkNotaLartas + "' target='_blank'>Nota Pengantar (Lartas)</a><br>";
+              message += "<a href='" + downloadLinks.downloadLinkSurat + "' target='_blank'>Surat Persetujuan</a>";
+
+              // Show the success message using SweetAlert
+              Swal.fire({
+                icon: "success",
+                html: message,
+                confirmButtonText: "OK"
+              });
+            }).withFailureHandler((error) => {
+              // Hide the loading overlay
+              document.getElementById("loading-overlay").style.display = "none";
+              // Show an error message if the Siapterbang value is not found in the spreadsheet
+              Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Nomor Siap Terbang tidak ditemukan. Coba lagi Ngab!"
+              });
+            }).mailMerge(siapterbang); // Pass the siapterbang value to the mailMerge function
+          }
+        });
+      }
+
+    //reset all form
+      function resetForm() {
+        document.getElementById("reForm").reset();
+        category.style.display = "block";
+        checkboxNtujuan.checked = true;
+        ntujuan.value = "";
+        ntujuan.required = false;
+        ntujuan.style.display = "none";
+        gridDetilAlasan.style.gridColumn = "1 / 3";
+        gridDetilAlasan.style.height = '30px';
+        tanggalhost.value = "";
+        tanggalmaster.value = "";
+        tanggalhost.style.display = "none";
+        tanggalmaster.style.display = "none";
+        kodehs.value = "";
+        kodehs.required = false;
+        kodehs.style.display = "none";
+        uraian.style.gridColumn = "1 / 3";
+        uraian.style.height = '30px';
+        noReqSpbl();
+        ketentuan.style.height = '30px';
+        ketentuan.required = false;
+        ketentuan.value = "";
+        gridLartas.style.display = "none";
+        checklists.style.display = "block";
+        formInput.style.display = "none";
+        tdkSesuaiPesanan.style.display = "none";
+        salahKirim.style.display = "none";
+        rusak.style.display = "none";
+        clSpbl.style.display = "none";
+        nextButton.style.display = "block";
+        backButton.style.display = "none";
+        resetButton.style.display = "block";
+        submitButton.style.display = "none";
+        mmButton.style.display = "block";
+        uploadButton.style.display = "block";
+      }
+
+      // show/hide tgl AWB
+      mawb.addEventListener("focus", function() {
+        tanggalhost.style.display = "none";
+        tanggalmaster.style.display = "block";
+        tanggalmaster.style.gridColumn = "1 / 3"; // Change grid-column
+        if (tanggalmaster.value !== '' && tanggalmaster.value !== tanggalhost.value && tanggalhost.value !== '') {
+          tanggalmaster.style.display = "block";
+          tanggalhost.style.display = "block";
+          tanggalhost.style.gridColumn = "1 / 2";
+          tanggalmaster.style.gridColumn = "2 / 3";
+        }
+      });
+      hawb.addEventListener("focus", function() {
+        tanggalmaster.style.display = "none";
+        tanggalhost.style.display = "block";
+        tanggalhost.style.gridColumn = "1 / 3"; // Change grid-column
+        if (tanggalhost.value !== '' && tanggalhost.value !== tanggalmaster.value && tanggalmaster.value !== '') {
+          tanggalmaster.style.display = "block";
+          tanggalhost.style.display = "block";
+          tanggalhost.style.gridColumn = "1 / 2";
+          tanggalmaster.style.gridColumn = "2 / 3";
+        }
+      });
+      tanggalmaster.addEventListener("change", function() {
+        if (tanggalmaster.value === '') {
+          tanggalmaster.style.display = "block";
+          tanggalmaster.style.gridColumn = "1 / 3";
+        }
+        if (tanggalmaster.value === tanggalhost.value) {
+          tanggalhost.style.display = "none";
+          tanggalmaster.style.display = "block";
+          tanggalmaster.style.gridColumn = "1 / 3";
+        }
+        if (tanggalmaster.style.gridColumn === "1 / 3") {
+          tanggalhost.style.display = "none";
+        }
+        if (tanggalmaster.value !== '' && tanggalmaster.value !== tanggalhost.value && tanggalhost.value !== '') {
+          tanggalmaster.style.display = "block";
+          tanggalhost.style.display = "block";
+          tanggalhost.style.gridColumn = "1 / 2";
+          tanggalmaster.style.gridColumn = "2 / 3";
+        }
+        if (tanggalmaster.value !== '' && tanggalmaster.style.gridColumn === "1 / 2" && tanggalhost.style.gridColumn === "2 / 3") {
+          tanggalmaster.style.display = "block";
+          tanggalhost.style.gridColumn = "1 / 2";
+          tanggalmaster.style.gridColumn = "2 / 3";
+        }
+      });
+      tanggalhost.addEventListener("change", function() {
+        if (tanggalhost.value === '') {
+          tanggalhost.style.display = "block";
+          tanggalhost.style.gridColumn = "1 / 3";
+        }
+        if (tanggalhost.value === tanggalmaster.value) {
+          tanggalmaster.style.display = "none";
+          tanggalhost.style.display = "block";
+          tanggalhost.style.gridColumn = "1 / 3";
+        }
+        if (tanggalhost.style.gridColumn === "1 / 3") {
+          tanggalmaster.style.display = "none";
+        }
+        if (tanggalhost.value !== '' && tanggalhost.value !== tanggalmaster.value && tanggalmaster.value !== '') {
+          tanggalmaster.style.display = "block";
+          tanggalhost.style.display = "block";
+          tanggalhost.style.gridColumn = "1 / 2";
+          tanggalmaster.style.gridColumn = "2 / 3";
+        }
+      });
+      if (tanggalhost.value === "") { // only update if tglhawb value is empty
+        tanggalhost.value = tanggalmaster.value;
+      }
+      
+      // show/hide Negara Tujuan
+      checkboxNtujuan.addEventListener('change', function() {
+        if (!this.checked) {
+          gridDetilAlasan.style.gridColumn = "1 / 2";
+          showntujuan.style.display = "block";
+          showntujuan.value = "";
+          showntujuan.required = true;
+          showntujuan.style.gridColumn = "2 / 3";
+        } else {
+          showntujuan.required = false;
+          gridDetilAlasan.style.gridColumn = "1 / 3";
+          showntujuan.style.display = "none";
+        }
+      });
+
+      function noReqSpbl() {
+        document.getElementById("spbl").required = false;
+        document.getElementById("spbl").value = "";
+        document.getElementById("spbl").disabled = true;
+        document.getElementById("tglspbl").required = false;
+        document.getElementById("tglspbl").value = "";
+        document.getElementById("tglspbl").disabled = true;
+      }
+
+      // update input based on checked or unchecked clSpbl
+      document.getElementById("clSpbl").addEventListener("change", function() {
+        if (this.checked) {
+          document.getElementById("spbl").disabled = false;
+          document.getElementById("spbl").required = true;
+          document.getElementById("tglspbl").disabled = false;
+          document.getElementById("tglspbl").required = true;
+        } else {
+          noReqSpbl();
+        }
+      });
+
+      // add event listener to the next button
+      nextButton.addEventListener('click', function() {
+        // check if a category has been selected
+        if (categoryDropdown.value === '') {
+          alert('Please select a category before proceeding.');
+          return;
+        }
+        // hide the current form and display the next form
+        category.style.display = "none";
+        checklists.style.display = "none";
+        formInput.style.display = "block";
+        nextButton.style.display = "none";
+        backButton.style.display = "block";
+        resetButton.style.display = "none";
+        submitButton.style.display = "block";
+      });
+
+      // add event listener to the back button
+      backButton.addEventListener('click', function() {
+        // hide the current form and display the prev form
+        resetForm();
+        category.style.display = "block";
+        mmButton.style.display = "none";
+        uploadButton.style.display = "none";
+      });
+
+      // add event listener to the reset button
+      resetButton.addEventListener('click', function() {
+        resetForm();
+      });
+
+      // selecting category
+      category.addEventListener("change", function() {
+        if (category.value === "terjadi ketidaksesuaian pesanan") {
+          tdkSesuaiPesanan.style.display = "block";
+          mmButton.style.display = "none";     
+          uploadButton.style.display = "none";
+        } else {
+          tdkSesuaiPesanan.style.display = "none";
+        }
+        if (category.value === "terjadi salah kirim dari pelabuhan / negara asal / pemuatan") {
+          salahKirim.style.display = "block";
+          mmButton.style.display = "none";
+          uploadButton.style.display = "none";
+        } else {
+          salahKirim.style.display = "none";
+        }
+        if (category.value === "terjadi kerusakan terhadap barang sebagaimana dimaksud") {
+          rusak.style.display = "block";
+          mmButton.style.display = "none";
+          uploadButton.style.display = "none";
+        } else {
+          rusak.style.display = "none";
+        }
+        if (category.value === "tidak dapat memenuhi ketentuan perijinan barang larangan dan/atau pembatasan sesuai dengan ketentuan perundangan yang berlaku") {
+          clSpbl.style.display = "block";
+          mmButton.style.display = "none";
+          uploadButton.style.display = "none";
+          uraian.style.gridColumn = "1 / 2";
+          kodehs.style.display = "block";
+          kodehs.required = true;
+          gridLartas.style.display = "block";
+          ketentuan.required = true;
+        } else {
+          clSpbl.style.display = "none";
+          document.getElementById("clSpbl").checked = false;
+          uraian.style.gridColumn = "1 / 3";
+          kodehs.required = false;
+          kodehs.style.display = "none";
+          noReqSpbl();
+          ketentuan.required = false;
+          gridLartas.style.display = "none";
+        }
+      });
+
+      // update field on submit button mouseover
+      function updateField() {
+        const tglmawb = document.getElementById("tglmawb");
+        const tglhawb = document.getElementById("tglhawb");
+        const nshipper = document.getElementById("nshipper");
+        const ntujuansama = document.getElementById("ntujuansama");
+        const ntujuan = document.getElementById("ntujuan");
+
+        if (tglhawb.value === "") { // only update if tglhawb value is empty
+          tglhawb.value = tglmawb.value;
+        }
+
+        if (ntujuansama.checked) {
+          ntujuan.value = nshipper.value;
+        }
+      };
+
+      //to handle submission
       document.getElementById("reForm").addEventListener("submit", (event) => {
         event.preventDefault(); // prevent default form submission
+        document.getElementById("loading-overlay").style.display = "block";
         
         // get input values
         const formData = new FormData(event.target);
@@ -773,7 +1262,7 @@
         const consignee = formData.get("consignee");
         const noSurat = formData.get("noSurat");
         const tglSurat = formData.get("tglSurat");
-        const alasan = formData.get("alasan");
+        const category = formData.get("category");
         const detilAlasan = formData.get("detilAlasan");
         const bc11 = formData.get("bc11");
         const pos = formData.get("pos");
@@ -789,29 +1278,37 @@
         const berat = formData.get("berat");
         const uraian = formData.get("uraian");
         const kodehs = formData.get("kodehs");
-        const fungsi = formData.get("fungsi");
         const shipper = formData.get("shipper");
         const nshipper = formData.get("nshipper");
         const ntujuan = formData.get("ntujuan");
         const spbl = formData.get("spbl");
         const tglspbl = formData.get("tglspbl");
-        const dasarHukum = formData.get("dasarHukum");
+        const ketentuan = formData.get("ketentuan");
         // add more input fields here
         
         // submit data to Google Apps Script
         google.script.run.withSuccessHandler(() => {
-          alert("Data submitted successfully!");
+          document.getElementById("loading-overlay").style.display = "none";
+          Swal.fire({
+            icon: "success",
+            html: 'Data Submited Successfully!',
+            confirmButtonText: "OK"
+          });
           // clear form inputs
-          document.getElementById("reForm").reset();
+          resetForm();
+          mmButton.style.display = "block";
+          uploadButton.style.display = "block";
+
         }).withFailureHandler((error) => {
           alert("An error occurred: " + error.message);
-        }).submitData(siapterbang, ppjk, alamat, consignee, noSurat, tglSurat, alasan, detilAlasan, bc11, pos, subpos, subsubpos, tglbc11, mawb, hawb, tglmawb, tglhawb, jumlah, satuan, berat, uraian, kodehs, fungsi, shipper, nshipper, ntujuan, spbl, tglspbl, dasarHukum);
+        }).submitData(siapterbang, ppjk, alamat, consignee, noSurat, tglSurat, category, detilAlasan, bc11, pos, subpos, subsubpos, tglbc11, mawb, hawb, tglmawb, tglhawb, jumlah, satuan, berat, uraian, kodehs, shipper, nshipper, ntujuan, spbl, tglspbl, ketentuan);
       });
     </script>
 
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-      <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <div id="response"></div>
   </body>
 </html>
